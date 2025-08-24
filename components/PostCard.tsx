@@ -11,7 +11,7 @@ const PostCard = ({ post }: PostCardProps) => {
   const categoryUrl = `/category/${post.category?.slug}`;
 
   return (
-    <article className="card card-compact md:card-normal bg-base-100 shadow-xl transition-shadow hover:shadow-2xl">
+    <article className="card bg-base-100 shadow-lg hover:shadow-2xl transition-shadow border-2 border-base-300">
       <Link href={postUrl}>
         <figure className="relative h-48 md:h-64">
           <Image
@@ -31,12 +31,12 @@ const PostCard = ({ post }: PostCardProps) => {
             </Link>
           )}
         </div>
-        <h2 className="card-title text-xl md:text-2xl font-bold">
+        <h2 className="card-title text-2xl font-serif">
           <Link href={postUrl} className="hover:underline">
             {post.title}
           </Link>
         </h2>
-        <p className="text-base-content/70">{post.excerpt}</p>
+        <p className="text-base-content/80 mt-2">{post.excerpt}</p>
         <div className="card-actions justify-start items-center mt-4">
           <div className="flex items-center gap-2 text-sm">
             {/* Assuming author image isn't available in the provided API spec */}
