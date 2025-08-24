@@ -9,7 +9,7 @@ const Footer = ({ config }: FooterProps) => {
   const { siteConfig, featureFlags } = config;
 
   return (
-    <footer className="bg-base-200 text-base-content">
+    <footer className="bg-neutral text-neutral-content">
       <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col items-center sm:flex-row sm:justify-between">
           <div className="text-center sm:text-left">

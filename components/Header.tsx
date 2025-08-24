@@ -10,7 +10,7 @@ const Header = ({ config }: HeaderProps) => {
   const { siteConfig, featureFlags } = config;
 
   return (
-    <header className="bg-base-100 border-b border-base-300">
+    <header className="bg-neutral text-neutral-content">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex-shrink-0">
@@ -30,12 +30,12 @@ const Header = ({ config }: HeaderProps) => {
           </div>
           <nav className="hidden md:flex md:items-center md:space-x-8">
             {featureFlags.enableCategoriesPage && (
-              <Link href="/categories" className="text-base-content hover:text-primary transition-colors duration-200">
+              <Link href="/categories" className="hover:text-primary transition-colors duration-200">
                 Categories
               </Link>
             )}
             {featureFlags.enableTagsPage && (
-              <Link href="/tags" className="text-base-content hover:text-primary transition-colors duration-200">
+              <Link href="/tags" className="hover:text-primary transition-colors duration-200">
                 Tags
               </Link>
             )}
