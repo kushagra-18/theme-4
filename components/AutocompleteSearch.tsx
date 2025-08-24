@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
+import { createBlazeBlogClient } from '@/lib/blazeblog';
 
 interface SearchResult {
   title: string;
@@ -25,10 +26,6 @@ const AutocompleteSearch = () => {
       }, delay);
     };
   };
-
-import { createBlazeBlogClient } from '@/lib/blazeblog';
-
-// ...
 
   const fetchResults = async (searchQuery: string) => {
     if (searchQuery.length < 2) {

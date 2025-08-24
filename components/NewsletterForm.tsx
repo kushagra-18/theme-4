@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import { createBlazeBlogClient } from '@/lib/blazeblog';
 
 const NewsletterForm = () => {
   const [email, setEmail] = useState('');
@@ -13,10 +14,6 @@ const NewsletterForm = () => {
     setLoading(true);
     setMessage('');
     setError('');
-
-import { createBlazeBlogClient } from '@/lib/blazeblog';
-
-// ...
 
     try {
       const client = createBlazeBlogClient();

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Comment } from '@/lib/blazeblog';
+import { Comment, createBlazeBlogClient } from '@/lib/blazeblog';
 
 interface CommentSectionProps {
   postId: number;
@@ -33,7 +33,7 @@ const CommentCard = ({ comment }: { comment: Comment }) => {
     )
 }
 
-const CommentSection = ({ postSlug }: CommentSectionProps) => {
+const CommentSection = ({ postId, postSlug }: CommentSectionProps) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [meta, setMeta] = useState<CommentsResponse['meta'] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -47,10 +47,6 @@ const CommentSection = ({ postSlug }: CommentSectionProps) => {
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
-
-import { createBlazeBlogClient } from '@/lib/blazeblog';
-
-// ...
 
   const fetchComments = async (pageNum: number) => {
     setLoading(true);
