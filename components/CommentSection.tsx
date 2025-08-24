@@ -91,14 +91,20 @@ const CommentSection = ({ postSlug }: CommentSectionProps) => {
             throw new Error(errorData.message || 'Failed to submit comment');
         }
 
-        setFormSuccess('Comment submitted successfully! It will appear after approval.');
+        const result = await response.json();
+
         // Reset form
         setAuthorName('');
         setAuthorEmail('');
         setContent('');
-        // Refresh comments
-        setPage(1);
-        fetchComments(1);
+
+        if (result.data?.status === 'approved') {
+            setFormSuccess('Comment posted successfully!');
+            // Add the new comment to the top of the list for instant feedback
+            setComments(prev => [result.data, ...prev]);
+        } else {
+            setFormSuccess('Thank you! Your comment is awaiting moderation.');
+        }
     } catch (err: any) {
         setFormError(err.message);
     } finally {

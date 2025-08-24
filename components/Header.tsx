@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { SiteConfig } from '@/lib/blazeblog';
 import Image from 'next/image';
+import AutocompleteSearch from './AutocompleteSearch';
 
 interface HeaderProps {
   config: SiteConfig;
@@ -41,9 +42,6 @@ const Header = ({ config }: HeaderProps) => {
             )}
             {/* Add other navigation links here if needed */}
           </nav>
-import AutocompleteSearch from './AutocompleteSearch';
-
-// ... inside the return statement of Header component
           <div className="flex-1 flex justify-center px-2 lg:ml-6 lg:justify-end">
             <AutocompleteSearch />
           </div>
