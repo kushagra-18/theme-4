@@ -2,8 +2,6 @@ import { config } from "@/config";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api/v1";
 
-// --- INTERFACES ---
-
 export interface Post {
   id: number;
   title: string;
@@ -93,6 +91,18 @@ export interface ApiResponse<T = any> {
   data?: T;
 }
 
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+}
+
 export interface PaginationMeta {
   total: number;
   limit: number;
@@ -100,11 +110,6 @@ export interface PaginationMeta {
   totalPages: number;
   nextPage: number | null;
   prevPage: number | null;
-}
-
-export interface PaginatedResponse<T> {
-    data: T[];
-    meta: PaginationMeta;
 }
 
 export interface GetPostsResult {
@@ -167,8 +172,6 @@ export interface SiteConfig {
   };
 }
 
-// --- BLAZEBLOG CLIENT ---
-
 class BlazeBlogClient {
   private baseUrl: string;
   private tenantSlug: string;
@@ -180,10 +183,14 @@ class BlazeBlogClient {
     this.domain = domain;
   }
 
-  private async makeRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
+  async makeRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`;
+    let domain = this.domain || (typeof window !== 'undefined' ?
+      `${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}` :
+      '');
+
     const headers = {
-      'X-domain': this.domain || '',
+      'X-domain': domain,
       'Content-Type': 'application/json',
       'X-public-site': 'true',
       ...options?.headers,
@@ -196,16 +203,27 @@ class BlazeBlogClient {
     });
 
     if (!response.ok) {
-      const errorBody = await response.text();
-      throw new Error(`API Error: ${response.status} - ${response.statusText}. Body: ${errorBody}`);
+        const errorBody = await response.text();
+        throw new Error(`API Error: ${response.status} - ${response.statusText}. Body: ${errorBody}`);
     }
 
     const data = await response.json();
     return data;
   }
 
-  async getPosts({ limit = 10, page = 1, tags, category }: { limit?: number; page?: number; tags?: string[]; category?: string; } = {}): Promise<GetPostsResult> {
-    let endpoint = `/public/posts?page=${page}&limit=${limit}`;
+  async getPosts({
+    limit = 10,
+    page = 1,
+    tags,
+    category
+  }: {
+    limit?: number;
+    page?: number;
+    tags?: string[];
+    category?: string;
+  } = {}): Promise<GetPostsResult> {
+    let endpoint = `/public/posts/home?limit=${limit}&page=${page}`;
+
     if (category) {
       endpoint = `/public/posts/category/${category}?page=${page}&limit=${limit}`;
     } else if (tags && tags.length > 0) {
@@ -214,17 +232,20 @@ class BlazeBlogClient {
 
     const response = await this.makeRequest<any>(endpoint);
 
+    // Handle different response structures
     let posts: any[] = [];
     let meta: { total: number; limit: number } = { total: 0, limit };
 
     if (category) {
-        const categoryData = response.data || response;
-        posts = categoryData.posts || [];
-        meta = response.meta || { total: posts.length, limit };
+      // Category API returns: { data: { category: {...}, posts: [...] }, meta: {...} }
+      const categoryData = response.data || response;
+      posts = categoryData.posts || [];
+      meta = response.meta || { total: posts.length, limit };
     } else {
-        const data = response.data || response;
-        posts = Array.isArray(data) ? data : (data.posts || []);
-        meta = response.meta || { total: posts.length, limit };
+      // Home and tag APIs return: { data: [...], meta: {...} } or { data: { posts: [...] }, meta: {...} }
+      const data = response.data || response;
+      posts = Array.isArray(data) ? data : (data.posts || []);
+      meta = response.meta || { total: posts.length, limit };
     }
 
     const totalPages = Math.ceil(meta.total / limit);
@@ -232,7 +253,7 @@ class BlazeBlogClient {
     const prevPage = page > 1 ? page - 1 : null;
 
     return {
-      posts: posts.map(this.transformPost),
+      posts: posts.map(p => this.transformPost(p)),
       meta,
       pagination: {
         total: meta.total,
@@ -247,15 +268,17 @@ class BlazeBlogClient {
 
   async getPost(slug: string, includeRelated = true): Promise<GetPostResult | null> {
     try {
-      const endpoint = `/public/posts/${slug}${includeRelated ? '?include=related' : ''}`;
-      const response = await this.makeRequest<any>(endpoint);
+      const response = await this.makeRequest<any>(`/public/posts/${slug}?includeRelated=${includeRelated}`, {
+        cache: 'no-store',
+      });
+
       const data = response.data || response;
       const post = this.transformPost(data);
 
       return {
         post: {
           ...post,
-          relatedPosts: data.relatedPosts || [],
+          relatedPosts: data.relatedPosts || []
         },
       };
     } catch (error) {
@@ -266,31 +289,43 @@ class BlazeBlogClient {
 
   async getRelatedPosts({ slug, limit = 3 }: { slug: string; limit?: number }): Promise<GetRelatedPostsResult> {
     try {
-        const response = await this.makeRequest<any>(`/public/posts/${slug}/related`);
-        const relatedPosts = response.data || response;
-        const posts = relatedPosts
-            .map((item: any) => item.relatedPost)
-            .filter((post: any) => post && post.id && post.title)
-            .slice(0, limit)
-            .map(this.transformPost);
+      const response = await this.makeRequest<any>(`/public/posts/${slug}?includeRelated=true`);
+      const data = response.data || response;
+      const relatedPosts = data.relatedPosts || [];
 
-        return { posts };
+      const posts = relatedPosts
+        .map((item: any) => item.relatedPost)
+        .filter((post: any) => post && post.id && post.title)
+        .slice(0, limit)
+        .map(p => this.transformPost(p));
+
+      return { posts };
     } catch (error) {
-        console.error('Error fetching related posts:', error);
-        return { posts: [] };
+      console.error('Error fetching related posts:', error);
+      return { posts: [] };
     }
   }
 
   async getTags(): Promise<{ tags: Tag[] }> {
-      const response = await this.makeRequest<{data: Tag[]}>('/public/tags?popular=true');
-      return { tags: response.data };
+    const response = await this.makeRequest<any>('/public/tags?popular=true', {
+      cache: 'no-store',
+    });
+    return {
+      tags: response.data || response,
+    };
   }
 
   async getCategories(): Promise<{ categories: Category[] }> {
-    const response = await this.makeRequest<any>('/public/categories');
+    const response = await this.makeRequest<any>('/public/categories', {
+      cache: 'no-store',
+    });
+
     const data = response.data || response;
     const categories = Array.isArray(data) ? data : [];
-    return { categories };
+
+    return {
+      categories,
+    };
   }
 
   async getComments(postSlug: string, page = 1, limit = 5): Promise<{ comments: Comment[]; meta: any; config: any }> {
@@ -299,69 +334,110 @@ class BlazeBlogClient {
       if (!postResult?.post) {
         throw new Error('Post not found');
       }
-      const response = await this.makeRequest<any>(`/public/posts/${postResult.post.id}/comments?page=${page}&limit=${limit}`);
+
+      const response = await this.makeRequest<any>(
+        `/public/posts/${postResult.post.id}/comments?limit=${limit}&page=${page}`, {
+          cache: 'no-store',
+        }
+      );
+
       return {
         comments: response.data || [],
         meta: response.meta || { total: 0, page, limit, totalPages: 1 },
-        config: { enabled: true, allowUrls: true, allowNested: true, signUpMessage: null },
+        config: {
+          enabled: true,
+          allowUrls: true,
+          allowNested: true,
+          signUpMessage: null,
+        },
       };
     } catch (error) {
-      return { comments: [], meta: { total: 0, page: 1, limit, totalPages: 1 }, config: { enabled: true, allowUrls: true, allowNested: true, signUpMessage: null } };
+      return {
+        comments: [],
+        meta: { total: 0, page: 1, limit, totalPages: 1 },
+        config: {
+          enabled: true,
+          allowUrls: true,
+          allowNested: true,
+          signUpMessage: null
+        }
+      };
     }
   }
 
-  async createComment(commentData: { postSlug: string; authorName: string; authorEmail: string; authorWebsite?: string; content: string; parentCommentId?: number; }): Promise<ApiResponse<Comment>> {
-    const postResult = await this.getPost(commentData.postSlug, false);
-    if (!postResult?.post) {
-        throw new Error('Post not found');
-    }
-    const { postSlug, ...payload } = commentData;
-    const data = await this.makeRequest<ApiResponse<Comment>>(`/public/posts/${postResult.post.id}/comments`, {
-        method: 'POST',
-        body: JSON.stringify(payload),
-    });
-    return data;
+  async createComment(commentData: {
+    postSlug: string;
+    authorName: string;
+    authorEmail: string;
+    authorWebsite?: string;
+    content: string;
+    parentCommentId?: number;
+  }): Promise<ApiResponse<Comment>> {
+      const postResult = await this.getPost(commentData.postSlug, false);
+      if (!postResult?.post) {
+          throw new Error('Post not found');
+      }
+      const { postSlug, ...payload } = commentData;
+      const data = await this.makeRequest<ApiResponse<Comment>>(`/public/comments`, {
+          method: 'POST',
+          body: JSON.stringify({ ...payload, postId: postResult.post.id }),
+      });
+      return data;
   }
 
   async searchPosts(query: string): Promise<{ posts: Post[]; categories: Category[]; tags: Tag[] }> {
     if (!query.trim()) {
       return { posts: [], categories: [], tags: [] };
     }
-    const response = await this.makeRequest<any>(`/public/search?q=${encodeURIComponent(query)}`);
+
+    const response = await this.makeRequest<any>(`/public/search?q=${encodeURIComponent(query)}`, {
+      cache: 'no-store',
+    });
+
     const data = response.data || response;
+
     return {
-      posts: (data.posts?.posts || []).map(this.transformPost),
+      posts: (data.posts?.posts || []).map(p => this.transformPost(p)),
       categories: data.categories || [],
       tags: data.tags || [],
     };
   }
 
   async getSiteConfig(): Promise<SiteConfig> {
-    const response = await this.makeRequest<any>('/public/site-config');
-    // Handle cases where the config might be nested inside a 'data' property
-    if (response && response.data && response.data.featureFlags) {
-      return response.data;
+    const response = await this.makeRequest<any>('/public/site/configs', {
+      cache: 'no-store',
+    });
+    if (response && response.data) {
+        return response.data;
     }
     return response;
   }
 
   async subscribeToNewsletter(data: SubscribeRequest): Promise<ApiResponse<Newsletter>> {
-    const response = await this.makeRequest<ApiResponse<Newsletter>>('/public/newsletter/subscribe', {
-        method: 'POST',
-        body: JSON.stringify(data),
+    const response = await this.makeRequest<ApiResponse<Newsletter>>('/public/newsletters/subscribe', {
+      method: 'POST',
+      body: JSON.stringify(data),
+      cache: 'no-store',
     });
+
     return response;
   }
 
   private transformPost(data: any): Post {
     const post = data.data || data;
-    const slug = post.slug || (post.title ? post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : `post-${post.id}`);
+
+    const slug = post.slug || (post.title ? post.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '') : `post-${post.id}`);
 
     const transformImageUrl = (url: string | null | undefined): string | null => {
       if (!url || typeof url !== 'string') return null;
+
       if (url.startsWith('http://') || url.startsWith('https://')) {
         return url;
       }
+
       return `https://static.blazeblog.co/blazeblog${url.startsWith('/') ? '' : '/'}${url}`;
     };
 
@@ -391,8 +467,6 @@ class BlazeBlogClient {
   }
 }
 
-// --- CLIENT INSTANCES & FACTORIES ---
-
 export const blazeblog = new BlazeBlogClient(API_BASE_URL, config.blog.tenantSlug, 'localhost:3000');
 
 export function createBlazeBlogClient(domain?: string) {
@@ -400,7 +474,10 @@ export function createBlazeBlogClient(domain?: string) {
 }
 
 export function getBlazeBlogClient(req?: { headers: { host?: string } }) {
-  const domain = req?.headers?.host || (typeof window !== 'undefined' ? `${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}` : undefined);
+
+  const domain = req?.headers?.host || (typeof window !== 'undefined' ?
+    `${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}` :
+    undefined);
   return new BlazeBlogClient(API_BASE_URL, config.blog.tenantSlug, domain);
 }
 

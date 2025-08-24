@@ -40,6 +40,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import ThemePreviewBar from "@/components/ThemePreviewBar";
 
 // Placeholder for Maintenance Page
 const MaintenancePage = () => (
@@ -71,6 +72,7 @@ export default async function RootLayout({
   return (
     <html lang="en" data-theme={theme}>
       <body className={inter.className}>
+        <ThemePreviewBar />
         <div className="flex flex-col min-h-screen">
           <Header config={siteConfig} />
           <main className="flex-grow">
