@@ -119,10 +119,28 @@ export interface GetPostsResult {
     limit: number;
   };
   pagination: PaginationMeta;
+  // The following are specific to category/tag pages and might not always be present
+  seo?: SeoData;
+  category?: Category;
+}
+
+export interface SeoData {
+  meta: {
+    title: string;
+    description: string;
+    canonicalUrl: string;
+  };
+  breadcrumbs: Array<{
+    name: string;
+    url: string;
+    position: number;
+  }>;
+  jsonLd: any[]; // Can be more specific if needed
 }
 
 export interface GetPostResult {
-  post: Post;
+  data: Post;
+  seo: SeoData;
 }
 
 export interface GetRelatedPostsResult {
@@ -223,64 +241,71 @@ class BlazeBlogClient {
     category?: string;
   } = {}): Promise<GetPostsResult> {
     let endpoint = `/public/posts/home?limit=${limit}&page=${page}`;
+    let isCategory = false;
 
     if (category) {
       endpoint = `/public/posts/category/${category}?page=${page}&limit=${limit}`;
+      isCategory = true;
     } else if (tags && tags.length > 0) {
       endpoint = `/public/posts/tag/${tags[0]}?page=${page}&limit=${limit}`;
     }
 
     const response = await this.makeRequest<any>(endpoint);
 
-    // Handle different response structures
-    let posts: any[] = [];
-    let meta: { total: number; limit: number } = { total: 0, limit };
+    if (isCategory) {
+      // Handle the new, rich category response
+      const categoryData = response.data || {};
+      const posts = (categoryData.posts || []).map((p: any) => this.transformPost(p));
+      const meta = response.meta || { total: posts.length, limit };
+      const totalPages = Math.ceil(meta.total / limit);
 
-    if (category) {
-      // Category API returns: { data: { category: {...}, posts: [...] }, meta: {...} }
-      const categoryData = response.data || response;
-      posts = categoryData.posts || [];
-      meta = response.meta || { total: posts.length, limit };
-    } else {
-      // Home and tag APIs return: { data: [...], meta: {...} } or { data: { posts: [...] }, meta: {...} }
-      const data = response.data || response;
-      posts = Array.isArray(data) ? data : (data.posts || []);
-      meta = response.meta || { total: posts.length, limit };
+      return {
+        posts,
+        meta,
+        pagination: {
+          total: meta.total,
+          limit,
+          page,
+          totalPages,
+          nextPage: page < totalPages ? page + 1 : null,
+          prevPage: page > 1 ? page - 1 : null,
+        },
+        seo: response.seo,
+        category: categoryData.category,
+      };
     }
 
+    // Handle home and tag pages (assuming simpler structure)
+    const posts = (response.data?.posts || response.data || []).map((p: any) => this.transformPost(p));
+    const meta = response.meta || { total: posts.length, limit };
     const totalPages = Math.ceil(meta.total / limit);
-    const nextPage = page < totalPages ? page + 1 : null;
-    const prevPage = page > 1 ? page - 1 : null;
 
     return {
-      posts: posts.map(p => this.transformPost(p)),
+      posts,
       meta,
       pagination: {
         total: meta.total,
         limit,
         page,
         totalPages,
-        nextPage,
-        prevPage,
+        nextPage: page < totalPages ? page + 1 : null,
+        prevPage: page > 1 ? page - 1 : null,
       },
     };
   }
 
   async getPost(slug: string, includeRelated = true): Promise<GetPostResult | null> {
     try {
-      const response = await this.makeRequest<any>(`/public/posts/${slug}?includeRelated=${includeRelated}`, {
-        cache: 'no-store',
-      });
+      // The new API response includes everything, so we request the full object
+      const response = await this.makeRequest<GetPostResult>(`/public/posts/${slug}?includeRelated=${includeRelated}`);
 
-      const data = response.data || response;
-      const post = this.transformPost(data);
+      // The transformPost function expects a specific structure, let's adapt
+      // or apply it to the nested post data.
+      if (response.data) {
+          response.data = this.transformPost(response.data) as Post;
+      }
 
-      return {
-        post: {
-          ...post,
-          relatedPosts: data.relatedPosts || []
-        },
-      };
+      return response;
     } catch (error) {
       console.error(`Error fetching post ${slug}:`, error);
       return null;
@@ -424,6 +449,7 @@ class BlazeBlogClient {
   }
 
   private transformPost(data: any): Post {
+    // The raw post data might be nested or not
     const post = data.data || data;
 
     const slug = post.slug || (post.title ? post.title
@@ -453,10 +479,11 @@ class BlazeBlogClient {
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
       publishedAt: post.publishedAt || post.createdAt,
-      readingTime: post.readingTime,
+      readingTime: post.minsRead || 5, // Use minsRead from API, fallback
       user: post.user,
       category: post.category,
       tags: post.tags || [],
+      relatedPosts: post.relatedPosts || [], // Pass related posts through
       description: post.excerpt,
       image: featuredImage || undefined,
       author: {

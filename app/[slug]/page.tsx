@@ -1,32 +1,39 @@
-import { getSSRBlazeBlogClient } from '@/lib/blazeblog';
+import { getSSRBlazeBlogClient, SiteConfig } from '@/lib/blazeblog';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
 import PostCard from '@/components/PostCard';
+import CommentSection from '@/components/CommentSection';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 type Props = {
   params: { slug: string };
 };
 
-// Generate metadata for the page
+// Generate metadata for the page using the new SEO object
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const client = await getSSRBlazeBlogClient();
   const result = await client.getPost(params.slug);
-  const post = result?.post;
 
-  if (!post) {
+  if (!result || !result.seo) {
     return {
       title: 'Post not found',
     };
   }
 
+  const { seo, data: post } = result;
+
   return {
-    title: post.title,
-    description: post.excerpt,
+    title: seo.meta.title,
+    description: seo.meta.description,
+    alternates: {
+        canonical: seo.meta.canonicalUrl,
+    },
     openGraph: {
-      title: post.title,
-      description: post.excerpt,
+      title: seo.meta.title,
+      description: seo.meta.description,
+      url: seo.meta.canonicalUrl,
       images: post.featuredImage ? [post.featuredImage] : [],
       type: 'article',
       publishedTime: post.publishedAt || post.createdAt,
@@ -35,65 +42,38 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-import CommentSection from '@/components/CommentSection';
-
 export default async function PostPage({ params }: Props) {
     const { slug } = params;
     const client = await getSSRBlazeBlogClient();
 
-    // Fetch post and site config in parallel
-    const [postResult, siteConfig] = await Promise.all([
+    // Fetch post data and site config in parallel
+    const [result, siteConfig] = await Promise.all([
         client.getPost(slug),
-        client.getSiteConfig()
+        client.getSiteConfig() // Still needed for feature flags
     ]);
 
-    if (!postResult || !postResult.post) {
+    if (!result) {
         notFound();
     }
 
-    const { post } = postResult;
-
-    // Fetch related posts separately
-    const { posts: relatedPosts } = await client.getRelatedPosts({ slug });
-
-    // Structured data for SEO
-    const jsonLd = {
-        '@context': 'https://schema.org',
-        '@type': 'BlogPosting',
-        headline: post.title,
-        description: post.excerpt,
-        image: post.featuredImage || undefined,
-        author: {
-            '@type': 'Person',
-            name: post.user.username,
-        },
-        publisher: {
-            '@type': 'Organization',
-            name: siteConfig.siteConfig.h1,
-            logo: {
-                '@type': 'ImageObject',
-                url: siteConfig.siteConfig.logoPath,
-            },
-        },
-        datePublished: post.publishedAt || post.createdAt,
-        dateModified: post.updatedAt || post.createdAt,
-    };
+    const { data: post, seo } = result;
+    const relatedPosts = post.relatedPosts || [];
 
     return (
         <>
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
-            <article className="bg-base-100 py-12">
+            {/* Render JSON-LD from the API */}
+            {seo.jsonLd.map((json, index) => (
+                <script
+                    key={index}
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
+                />
+            ))}
+            <article className="bg-base-100 py-8">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="max-w-3xl mx-auto">
-                        <header className="mb-8">
-                            {post.category && (
-                                <Link href={`/category/${post.category.slug}`} className="text-primary font-semibold text-sm uppercase hover:underline">
-                                    {post.category.name}
-                                </Link>
-                            )}
+                        <Breadcrumbs items={seo.breadcrumbs} />
+                        <header className="mt-4 mb-8">
                             <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight my-4">{post.title}</h1>
                             <div className="flex items-center space-x-2 text-base-content/70">
                                 <span>By {post.user.username}</span>
@@ -118,7 +98,6 @@ export default async function PostPage({ params }: Props) {
                             </figure>
                         )}
 
-                        {/* Render post content */}
                         {post.content && (
                             <div
                                 className="prose lg:prose-xl max-w-none"
@@ -126,7 +105,6 @@ export default async function PostPage({ params }: Props) {
                             />
                         )}
 
-                        {/* Tags */}
                         {post.tags && post.tags.length > 0 && (
                             <div className="mt-8 flex flex-wrap items-center gap-2">
                                 <span className="font-semibold">Tags:</span>
@@ -138,18 +116,17 @@ export default async function PostPage({ params }: Props) {
                             </div>
                         )}
 
-                        {siteConfig.featureFlags.enableComments && <CommentSection postId={post.id} postSlug={post.slug} />}
+                        {siteConfig?.featureFlags.enableComments && <CommentSection postId={post.id} postSlug={post.slug} />}
                     </div>
                 </div>
 
-                {/* Related Posts */}
-                {relatedPosts && relatedPosts.length > 0 && (
+                {relatedPosts.length > 0 && (
                     <div className="mt-16">
                         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                             <h2 className="text-3xl font-bold text-center mb-8">Related Posts</h2>
                             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-                                {relatedPosts.map(relatedPost => (
-                                    <PostCard key={relatedPost.id} post={relatedPost} />
+                                {relatedPosts.map(relatedPostItem => (
+                                    <PostCard key={relatedPostItem.id} post={relatedPostItem.relatedPost} />
                                 ))}
                             </div>
                         </div>
