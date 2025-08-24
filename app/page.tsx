@@ -33,16 +33,16 @@ export default async function HomePage({ searchParams }: { searchParams?: { page
     }
 
     return (
-      <div className="bg-base-100">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">{siteConfig.siteConfig.h1}</h1>
-            <p className="mt-4 max-w-2xl mx-auto text-lg text-base-content/70">
+      <div className="bg-base-200" style={{ backgroundImage: 'url(https://www.transparenttextures.com/patterns/lined-paper.png)'}}>
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+          <div className="text-center mb-16 bg-base-100/50 backdrop-blur-sm p-8 rounded-lg">
+            <h1 className="text-5xl md:text-6xl font-serif font-bold tracking-tight">{siteConfig.siteConfig.h1}</h1>
+            <p className="mt-4 max-w-2xl mx-auto text-xl">
               {siteConfig.siteConfig.homeMetaDescription}
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
             {posts.map((post) => (
               <PostCard key={post.id} post={post} />
             ))}

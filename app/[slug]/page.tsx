@@ -69,13 +69,13 @@ export default async function PostPage({ params }: Props) {
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
                 />
             ))}
-            <article className="bg-base-100 py-8">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <article className="bg-base-200 py-8" style={{ backgroundImage: 'url(https://www.transparenttextures.com/patterns/lined-paper.png)'}}>
+                <div className="p-8 bg-base-100/80 backdrop-blur-sm rounded-lg">
                     <div className="max-w-3xl mx-auto">
                         <Breadcrumbs items={seo.breadcrumbs} />
-                        <header className="mt-4 mb-8">
-                            <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight my-4">{post.title}</h1>
-                            <div className="flex items-center space-x-2 text-base-content/70">
+                        <header className="mt-4 mb-8 text-center border-b-2 border-base-300 pb-8">
+                            <h1 className="text-5xl font-serif font-bold tracking-tight my-4">{post.title}</h1>
+                            <div className="flex items-center justify-center space-x-2 text-base-content/70">
                                 <span>By {post.user.username}</span>
                                 <span>&middot;</span>
                                 <time dateTime={post.publishedAt || post.createdAt}>
