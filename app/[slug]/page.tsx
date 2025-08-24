@@ -120,6 +120,12 @@ export default async function PostPage({ params }: Props) {
                     </div>
                 </div>
 
+                {siteConfig?.featureFlags.enableNewsletters && (
+                    <div className="my-16">
+                        <NewsletterForm />
+                    </div>
+                )}
+
                 {relatedPosts.length > 0 && (
                     <div className="mt-16">
                         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
