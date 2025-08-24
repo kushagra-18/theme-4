@@ -81,8 +81,13 @@ export default async function PostPage({ params }: Props) {
                                 <time dateTime={post.publishedAt || post.createdAt}>
                                     {new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                                 </time>
+import ShareButtons from '@/components/ShareButtons';
+// ...
                                 <span>&middot;</span>
                                 <span>{post.readingTime} min read</span>
+                            </div>
+                            <div className="mt-4">
+                                <ShareButtons post={post} />
                             </div>
                         </header>
 
@@ -116,15 +121,11 @@ export default async function PostPage({ params }: Props) {
                             </div>
                         )}
 
-                        {siteConfig?.featureFlags.enableComments && <CommentSection postId={post.id} postSlug={post.slug} />}
+                        {/* The main content div ends here */}
                     </div>
                 </div>
 
-                {siteConfig?.featureFlags.enableNewsletters && (
-                    <div className="my-16">
-                        <NewsletterForm />
-                    </div>
-                )}
+                {/* Re-ordered sections below */}
 
                 {relatedPosts.length > 0 && (
                     <div className="mt-16">
@@ -136,6 +137,18 @@ export default async function PostPage({ params }: Props) {
                                 ))}
                             </div>
                         </div>
+                    </div>
+                )}
+
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="max-w-3xl mx-auto">
+                        {siteConfig?.featureFlags.enableComments && <CommentSection postId={post.id} postSlug={post.slug} />}
+                    </div>
+                </div>
+
+                {siteConfig?.featureFlags.enableNewsletters && (
+                    <div className="my-16">
+                        <NewsletterForm />
                     </div>
                 )}
             </article>

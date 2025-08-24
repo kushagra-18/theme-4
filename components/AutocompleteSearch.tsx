@@ -26,6 +26,10 @@ const AutocompleteSearch = () => {
     };
   };
 
+import { createBlazeBlogClient } from '@/lib/blazeblog';
+
+// ...
+
   const fetchResults = async (searchQuery: string) => {
     if (searchQuery.length < 2) {
       setResults([]);
@@ -34,12 +38,14 @@ const AutocompleteSearch = () => {
     }
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
-      const data = await response.json();
-      setResults(data);
-      setIsOpen(data.length > 0);
+      const client = createBlazeBlogClient();
+      const { posts } = await client.searchPosts(searchQuery);
+      setResults(posts.slice(0, 5)); // Limit to 5 results
+      setIsOpen(posts.length > 0);
     } catch (error) {
       console.error('Failed to fetch search results:', error);
+      setResults([]);
+      setIsOpen(false);
     } finally {
       setIsLoading(false);
     }

@@ -48,12 +48,15 @@ const CommentSection = ({ postSlug }: CommentSectionProps) => {
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
 
+import { createBlazeBlogClient } from '@/lib/blazeblog';
+
+// ...
+
   const fetchComments = async (pageNum: number) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/comments/${postSlug}?page=${pageNum}&limit=5`);
-      if (!response.ok) throw new Error('Failed to fetch comments');
-      const data: CommentsResponse = await response.json();
+      const client = createBlazeBlogClient();
+      const data = await client.getComments(postSlug, pageNum, 5);
       setComments(prev => pageNum === 1 ? data.comments : [...prev, ...data.comments]);
       setMeta(data.meta);
     } catch (err: any) {
@@ -80,18 +83,10 @@ const CommentSection = ({ postSlug }: CommentSectionProps) => {
     setFormSuccess('');
 
     try {
-        const response = await fetch(`/api/comments`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ postId: props.postId, authorName, authorEmail, content }),
+        const client = createBlazeBlogClient();
+        const result = await client.createCommentByPostId({
+            postId, authorName, authorEmail, content
         });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to submit comment');
-        }
-
-        const result = await response.json();
 
         // Reset form
         setAuthorName('');
@@ -99,14 +94,13 @@ const CommentSection = ({ postSlug }: CommentSectionProps) => {
         setContent('');
 
         if (result.data?.status === 'approved') {
-            setFormSuccess('Comment posted successfully!');
-            // Add the new comment to the top of the list for instant feedback
+            setFormSuccess(result.message || 'Comment posted successfully!');
             setComments(prev => [result.data, ...prev]);
         } else {
-            setFormSuccess('Thank you! Your comment is awaiting moderation.');
+            setFormSuccess(result.message || 'Thank you! Your comment is awaiting moderation.');
         }
     } catch (err: any) {
-        setFormError(err.message);
+        setFormError(err.message || 'Failed to submit comment');
     } finally {
         setSubmitting(false);
     }

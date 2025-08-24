@@ -14,20 +14,18 @@ const NewsletterForm = () => {
     setMessage('');
     setError('');
 
-    // The API client isn't available on the client side by default
-    // We would need a client-side instance or an API route handler.
-    // For now, this is a placeholder for the logic.
-    try {
-      // In a real app, you'd call a serverless function or API route here
-      // e.g., await fetch('/api/subscribe', { method: 'POST', body: JSON.stringify({ email }) });
-      console.log(`Subscribing with ${email}`);
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network request
+import { createBlazeBlogClient } from '@/lib/blazeblog';
 
-      setMessage('Thanks for subscribing!');
+// ...
+
+    try {
+      const client = createBlazeBlogClient();
+      const result = await client.subscribeToNewsletter({ email });
+
+      setMessage(result.message || 'Thanks for subscribing!');
       setEmail('');
-    } catch (err) {
-      setError('Failed to subscribe. Please try again later.');
-      console.error(err);
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
