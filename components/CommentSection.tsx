@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Comment } from '@/lib/blazeblog';
 
 interface CommentSectionProps {
+  postId: number;
   postSlug: string;
 }
 
@@ -79,10 +80,10 @@ const CommentSection = ({ postSlug }: CommentSectionProps) => {
     setFormSuccess('');
 
     try {
-        const response = await fetch(`/api/comments/${postSlug}`, {
+        const response = await fetch(`/api/comments`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ authorName, authorEmail, content }),
+            body: JSON.stringify({ postId: props.postId, authorName, authorEmail, content }),
         });
 
         if (!response.ok) {

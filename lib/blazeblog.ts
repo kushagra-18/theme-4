@@ -410,21 +410,34 @@ class BlazeBlogClient {
       return data;
   }
 
-  async searchPosts(query: string): Promise<{ posts: Post[]; categories: Category[]; tags: Tag[] }> {
-    if (!query.trim()) {
-      return { posts: [], categories: [], tags: [] };
-    }
-
-    const response = await this.makeRequest<any>(`/public/search?q=${encodeURIComponent(query)}`, {
+  async createCommentByPostId(commentData: {
+    postId: number;
+    authorName: string;
+    authorEmail: string;
+    authorWebsite?: string;
+    content: string;
+    parentCommentId?: number;
+  }): Promise<ApiResponse<Comment>> {
+    const data = await this.makeRequest<ApiResponse<Comment>>('/public/comments', {
+      method: 'POST',
+      body: JSON.stringify(commentData),
       cache: 'no-store',
     });
 
-    const data = response.data || response;
+    return data;
+  }
+
+  async searchPosts(query: string): Promise<{ posts: Post[] }> {
+    if (!query.trim()) {
+      return { posts: [] };
+    }
+
+    const response = await this.makeRequest<any>(`/public/search?q=${encodeURIComponent(query)}`);
+
+    const postsData = response.data?.posts?.posts || [];
 
     return {
-      posts: (data.posts?.posts || []).map(p => this.transformPost(p)),
-      categories: data.categories || [],
-      tags: data.tags || [],
+      posts: postsData.map((p: any) => this.transformPost(p)),
     };
   }
 

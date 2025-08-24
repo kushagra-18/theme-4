@@ -47,8 +47,8 @@ const PostCard = ({ post }: PostCardProps) => {
             </div> */}
             <span className="font-medium">{post.user.username}</span>
             <span className="text-base-content/50">&middot;</span>
-            <time dateTime={post.publishedAt || post.createdAt} className="text-base-content/50">
-              {new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', {
+            <time dateTime={post.publishedAt || post.createdAt || post.updatedAt} className="text-base-content/50">
+              {new Date(post.publishedAt || post.createdAt || post.updatedAt!).toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
