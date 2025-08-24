@@ -6,6 +6,8 @@ import Link from 'next/link';
 import PostCard from '@/components/PostCard';
 import CommentSection from '@/components/CommentSection';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import NewsletterForm from '@/components/NewsletterForm';
+import ShareButtons from '@/components/ShareButtons';
 
 type Props = {
   params: { slug: string };
@@ -81,9 +83,7 @@ export default async function PostPage({ params }: Props) {
                                 <time dateTime={post.publishedAt || post.createdAt}>
                                     {new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                                 </time>
-import ShareButtons from '@/components/ShareButtons';
-// ...
-                                <span>&middot;</span>
+                        <span>&middot;</span>
                                 <span>{post.readingTime} min read</span>
                             </div>
                             <div className="mt-4">

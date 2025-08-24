@@ -13,6 +13,12 @@ const nextConfig = {
                 hostname: 'placehold.co',
                 port: '',
                 pathname: '/**',
+            },
+             {
+                protocol: 'https',
+                hostname: 'blazeblog.s3.apac.amazonaws.com',
+                port: '',
+                pathname: '/**',
             }
         ],
     },

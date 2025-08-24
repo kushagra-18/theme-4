@@ -208,7 +208,7 @@ class BlazeBlogClient {
       '');
 
     const headers = {
-      'X-domain': domain,
+      'X-domain': "localhost:3000", // Use localhost for local dev to avoid CORS issues
       'Content-Type': 'application/json',
       'X-public-site': 'true',
       ...options?.headers,
