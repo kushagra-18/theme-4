@@ -10,6 +10,7 @@ export interface Post {
   content?: string;
   featuredImage: string | null;
   minsRead: number;
+  readingTime: number;
   createdAt: string;
   updatedAt?: string;
   publishedAt?: string;
@@ -48,6 +49,7 @@ export interface Comment {
   createdAt: string;
   parentCommentId?: number;
   replies?: Comment[];
+  status?: string;
 }
 
 export interface Category {
@@ -338,7 +340,7 @@ class BlazeBlogClient {
         .map((item: any) => item.relatedPost)
         .filter((post: any) => post && post.id && post.title)
         .slice(0, limit)
-        .map(p => this.transformPost(p));
+        .map((p: any) => this.transformPost(p));
 
       return { posts };
     } catch (error) {
@@ -372,12 +374,12 @@ class BlazeBlogClient {
   async getComments(postSlug: string, page = 1, limit = 5): Promise<{ comments: Comment[]; meta: any; config: any }> {
     try {
       const postResult = await this.getPost(postSlug, false);
-      if (!postResult?.post) {
+      if (!postResult?.data) {
         throw new Error('Post not found');
       }
 
       const response = await this.makeRequest<any>(
-        `/public/posts/${postResult.post.id}/comments?limit=${limit}&page=${page}`, {
+        `/public/posts/${postResult.data.id}/comments?limit=${limit}&page=${page}`, {
           cache: 'no-store',
         }
       );
@@ -415,13 +417,13 @@ class BlazeBlogClient {
     parentCommentId?: number;
   }): Promise<ApiResponse<Comment>> {
       const postResult = await this.getPost(commentData.postSlug, false);
-      if (!postResult?.post) {
+      if (!postResult?.data) {
           throw new Error('Post not found');
       }
       const { postSlug, ...payload } = commentData;
       const data = await this.makeRequest<ApiResponse<Comment>>(`/public/comments`, {
           method: 'POST',
-          body: JSON.stringify({ ...payload, postId: postResult.post.id }),
+          body: JSON.stringify({ ...payload, postId: postResult.data.id }),
       });
       return data;
   }
@@ -509,6 +511,7 @@ class BlazeBlogClient {
       updatedAt: post.updatedAt,
       publishedAt: post.publishedAt || post.createdAt,
       minsRead: post.minsRead || 5,
+      readingTime: post.readingTime || post.minsRead || 5,
       user: post.user,
       category: post.category,
       tags: post.tags || [],
@@ -544,7 +547,7 @@ export async function getSSRBlazeBlogClient() {
 
   try {
     const { headers } = await import('next/headers');
-    const headersList = await headers();
+    const headersList = headers();
     const host = headersList.get('host');
     const nginxDomain = headersList.get('x-nginx-domain');
     return new BlazeBlogClient(API_BASE_URL, config.blog.tenantSlug, host || nginxDomain || undefined);

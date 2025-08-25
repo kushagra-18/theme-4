@@ -116,7 +116,9 @@ const CommentSection = ({ postId, postSlug }: CommentSectionProps) => {
 
         if (result.data?.status === 'approved') {
             setFormSuccess(result.message || 'Comment posted successfully!');
-            setComments(prev => [result.data, ...prev]);
+            if (result.data) {
+                setComments(prev => [result.data!, ...prev]);
+            }
         } else {
             setFormSuccess(result.message || 'Thank you! Your comment is awaiting moderation.');
         }
