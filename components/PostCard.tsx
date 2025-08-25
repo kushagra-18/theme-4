@@ -11,8 +11,6 @@ const PostCard = ({ post }: PostCardProps) => {
   const postUrl = `/${post.slug}`;
   const categoryUrl = `/category/${post.category?.slug}`;
 
-    console.log(post);
-
 
   return (
     <article className="card bg-base-100 shadow-lg hover:shadow-2xl transition-shadow border-2 border-base-300">
