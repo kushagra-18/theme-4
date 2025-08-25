@@ -33,14 +33,14 @@ export default async function HomePage({ searchParams }: { searchParams?: { page
     }
 
     return (
-      <div className="bg-base-200" style={{ backgroundImage: 'url(https://www.transparenttextures.com/patterns/lined-paper.png)'}}>
+      <div className="bg-base-200">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="text-center mb-16 bg-base-100/50 backdrop-blur-sm p-8 rounded-lg">
+          {/* <div className="text-center mb-16 bg-base-100/50 backdrop-blur-sm p-8 rounded-lg">
             <h1 className="text-5xl md:text-6xl font-serif font-bold tracking-tight">{siteConfig.siteConfig.h1}</h1>
             <p className="mt-4 max-w-2xl mx-auto text-xl">
               {siteConfig.siteConfig.homeMetaDescription}
             </p>
-          </div>
+          </div> */}
 
           <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
             {posts.map((post) => (

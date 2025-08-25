@@ -71,7 +71,7 @@ export default async function PostPage({ params }: Props) {
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
                 />
             ))}
-            <article className="bg-base-200 py-8" style={{ backgroundImage: 'url(https://www.transparenttextures.com/patterns/lined-paper.png)'}}>
+            <article className="bg-base-200 py-8">
                 <div className="p-8 bg-base-100/80 backdrop-blur-sm rounded-lg">
                     <div className="max-w-3xl mx-auto">
                         <Breadcrumbs items={seo.breadcrumbs} />

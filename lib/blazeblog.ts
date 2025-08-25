@@ -9,10 +9,10 @@ export interface Post {
   excerpt: string;
   content?: string;
   featuredImage: string | null;
+  minsRead: number;
   createdAt: string;
   updatedAt?: string;
   publishedAt?: string;
-  readingTime: number;
   user: {
     id: number;
     username: string;
@@ -508,7 +508,7 @@ class BlazeBlogClient {
       createdAt: post.createdAt,
       updatedAt: post.updatedAt,
       publishedAt: post.publishedAt || post.createdAt,
-      readingTime: post.minsRead || 5, // Use minsRead from API, fallback
+      minsRead: post.minsRead || 5,
       user: post.user,
       category: post.category,
       tags: post.tags || [],

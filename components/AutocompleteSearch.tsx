@@ -78,7 +78,7 @@ const AutocompleteSearch = () => {
             <input
                 id="search-autocomplete"
                 name="q"
-                className="input input-bordered input-sm w-full bg-base-100/80 text-base-content placeholder:text-base-content/60 border-base-300/50 focus:border-primary focus:bg-base-100"
+                className="input input-bordered input-sm w-full bg-base-100 text-base-content placeholder:text-base-content/70 border-base-300 focus:border-primary focus:outline-primary shadow-sm"
                 placeholder="Search..."
                 type="search"
                 value={query}
@@ -87,10 +87,13 @@ const AutocompleteSearch = () => {
             />
         </div>
         {isOpen && (
-            <div className="absolute mt-1 w-full rounded-md shadow-lg bg-base-200 ring-1 ring-black ring-opacity-5 z-10">
+            <div className="absolute mt-1 w-full rounded-lg shadow-xl bg-base-100 border border-base-300 z-10">
                 <div className="py-1">
                     {isLoading ? (
-                        <div className="px-4 py-2 text-sm">Loading...</div>
+                        <div className="px-4 py-2 text-sm text-base-content">
+                            <span className="loading loading-spinner loading-xs mr-2"></span>
+                            Loading...
+                        </div>
                     ) : (
                         results.length > 0 ? (
                             results.map(post => (
@@ -98,14 +101,14 @@ const AutocompleteSearch = () => {
                                     key={post.slug}
                                     href={`/${post.slug}`}
                                     onClick={handleResultClick}
-                                    className="block px-4 py-2 text-sm hover:bg-base-300"
+                                    className="block px-4 py-2 text-sm hover:bg-base-200 transition-colors duration-200"
                                 >
-                                    <p className="font-bold">{post.title}</p>
-                                    <p className="text-xs text-base-content/70 truncate">{post.excerpt}</p>
+                                    <p className="font-semibold text-base-content">{post.title}</p>
+                                    <p className="text-xs text-base-content/80 truncate mt-1">{post.excerpt}</p>
                                 </Link>
                             ))
                         ) : (
-                            <div className="px-4 py-2 text-sm">No results found.</div>
+                            <div className="px-4 py-2 text-sm text-base-content/80">No results found.</div>
                         )
                     )}
                 </div>

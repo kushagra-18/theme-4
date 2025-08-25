@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { Post } from '@/lib/blazeblog';
+import { BiTime, BiUser, BiCalendar } from 'react-icons/bi';
 
 interface PostCardProps {
   post: Post;
@@ -9,6 +10,9 @@ interface PostCardProps {
 const PostCard = ({ post }: PostCardProps) => {
   const postUrl = `/${post.slug}`;
   const categoryUrl = `/category/${post.category?.slug}`;
+
+    console.log(post);
+
 
   return (
     <article className="card bg-base-100 shadow-lg hover:shadow-2xl transition-shadow border-2 border-base-300">
@@ -38,22 +42,25 @@ const PostCard = ({ post }: PostCardProps) => {
         </h2>
         <p className="text-base-content/80 mt-2">{post.excerpt}</p>
         <div className="card-actions justify-start items-center mt-4">
-          <div className="flex items-center gap-2 text-sm">
-            {/* Assuming author image isn't available in the provided API spec */}
-            {/* <div className="avatar">
-              <div className="w-8 h-8 rounded-full">
-                <Image src={post.author.image || `https://i.pravatar.cc/40?u=${post.user.username}`} alt={post.user.username} width={40} height={40} />
-              </div>
-            </div> */}
-            <span className="font-medium">{post.user.username}</span>
-            <span className="text-base-content/50">&middot;</span>
-            <time dateTime={post.publishedAt || post.createdAt || post.updatedAt} className="text-base-content/50">
-              {new Date(post.publishedAt || post.createdAt || post.updatedAt!).toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </time>
+          <div className="flex items-center gap-4 text-sm text-base-content/70">
+            <div className="flex items-center gap-1">
+              <BiUser className="w-4 h-4" />
+              <span className="font-medium">{post.user.username}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <BiCalendar className="w-4 h-4" />
+              <time dateTime={post.publishedAt || post.createdAt || post.updatedAt}>
+                {new Date(post.publishedAt || post.createdAt || post.updatedAt!).toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </time>
+            </div>
+            <div className="flex items-center gap-1">
+              <BiTime className="w-4 h-4" />
+              <span>{post.minsRead} min read</span>
+            </div>
           </div>
         </div>
       </div>
