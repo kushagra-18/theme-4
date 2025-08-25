@@ -221,8 +221,24 @@ class BlazeBlogClient {
     });
 
     if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(`API Error: ${response.status} - ${response.statusText}. Body: ${errorBody}`);
+        let errorData;
+        try {
+            errorData = await response.json();
+        } catch {
+            errorData = await response.text();
+        }
+        
+        const error = new Error();
+        error.name = 'APIError';
+        
+        if (typeof errorData === 'object' && errorData !== null) {
+            Object.assign(error, errorData);
+            error.message = errorData.message || `API Error: ${response.status} - ${response.statusText}`;
+        } else {
+            error.message = `API Error: ${response.status} - ${response.statusText}. Body: ${errorData}`;
+        }
+        
+        throw error;
     }
 
     const data = await response.json();

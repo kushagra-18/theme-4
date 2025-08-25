@@ -51,7 +51,7 @@ export default async function PostPage({ params }: Props) {
     // Fetch post data and site config in parallel
     const [result, siteConfig] = await Promise.all([
         client.getPost(slug),
-        client.getSiteConfig() // Still needed for feature flags
+        client.getSiteConfig()
     ]);
 
     if (!result) {

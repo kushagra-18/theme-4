@@ -26,7 +26,21 @@ const ShareButtons = ({ post }: ShareButtonsProps) => {
   };
 
   if (!postUrl) {
-    return null; // Don't render on the server
+    // Render placeholder on server to prevent CLS
+    return (
+      <div className="flex items-center gap-2">
+        <span className="font-semibold text-sm">Share:</span>
+        <div className="btn btn-sm btn-circle btn-ghost opacity-50" aria-label="Share buttons loading">
+          <div className="w-5 h-5 bg-base-content/20 rounded"></div>
+        </div>
+        <div className="btn btn-sm btn-circle btn-ghost opacity-50">
+          <div className="w-5 h-5 bg-base-content/20 rounded"></div>
+        </div>
+        <div className="btn btn-sm btn-circle btn-ghost opacity-50">
+          <div className="w-5 h-5 bg-base-content/20 rounded"></div>
+        </div>
+      </div>
+    );
   }
 
   return (
