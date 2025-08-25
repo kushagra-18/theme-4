@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Lora } from "next/font/google";
 import "./globals.css";
 import { getSSRBlazeBlogClient, SiteConfig } from "@/lib/blazeblog";
 
-const inter = Inter({ subsets: ["latin"] });
+const lora = Lora({ subsets: ["latin"] });
 
 // Helper function to fetch site config with error handling
 async function getSiteConfig(): Promise<SiteConfig | null> {
@@ -59,19 +59,19 @@ export default async function RootLayout({
 
   if (!siteConfig || siteConfig.featureFlags.maintenanceMode) {
     return (
-      <html lang="en" data-theme="dark">
-        <body className={inter.className}>
+      <html lang="en" data-theme="retro">
+        <body className={lora.className}>
           <MaintenancePage />
         </body>
       </html>
     );
   }
 
-  const theme = siteConfig.theme?.color || "dark";
+  const theme = siteConfig.theme?.color || "retro";
 
   return (
     <html lang="en" data-theme={theme}>
-      <body className={inter.className}>
+      <body className={lora.className}>
         <ThemePreviewBar />
         <div className="flex flex-col min-h-screen">
           <Header config={siteConfig} />

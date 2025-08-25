@@ -33,7 +33,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 export default async function CategoryPage({ params, searchParams }: Props) {
   const { slug } = params;
-  const currentPage = Number(search_params?.page) || 1;
+  const currentPage = Number(searchParams?.page) || 1;
   const client = await getSSRBlazeBlogClient();
 
   try {

@@ -75,15 +75,10 @@ const AutocompleteSearch = () => {
     <div className="relative max-w-md w-full lg:max-w-xs" ref={searchRef}>
         <label htmlFor="search-autocomplete" className="sr-only">Search</label>
         <div className="relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 pl-3 flex items-center">
-                <svg className="h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                    <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
-                </svg>
-            </div>
             <input
                 id="search-autocomplete"
                 name="q"
-                className="block w-full bg-base-100 py-2 pl-10 pr-3 border border-transparent rounded-md leading-5 focus:outline-none focus:bg-base-200 focus:border-base-300 focus:ring-0 sm:text-sm"
+                className="input input-bordered input-sm w-full bg-base-100/80 text-base-content placeholder:text-base-content/60 border-base-300/50 focus:border-primary focus:bg-base-100"
                 placeholder="Search..."
                 type="search"
                 value={query}
