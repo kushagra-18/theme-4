@@ -15,7 +15,7 @@ const Header = ({ config }: HeaderProps) => {
     <header className="bg-neutral text-neutral-content">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 min-w-0">
             <Link href="/" className="flex items-center space-x-2">
               {siteConfig.logoPath ? (
                 <Image
@@ -26,16 +26,16 @@ const Header = ({ config }: HeaderProps) => {
                   className="h-8 w-auto"
                 />
               ) : (
-                <span className="text-xl font-bold">{siteConfig.h1 || 'Blog'}</span>
+                <span className="text-xl font-bold whitespace-nowrap">{siteConfig.h1 || 'Blog'}</span>
               )}
             </Link>
           </div>
-          <nav className="hidden md:flex md:items-center md:space-x-8">
+          <nav className="hidden md:flex md:items-center md:space-x-6 flex-shrink-0">
             {headerNavigationLinks?.map((link, index) => (
               <a
                 key={index}
                 href={link.url}
-                className="hover:text-primary transition-colors duration-200"
+                className="hover:text-primary transition-colors duration-200 whitespace-nowrap"
                 target={link.url.startsWith('http') ? '_blank' : '_self'}
                 rel={link.url.startsWith('http') ? 'noopener noreferrer' : undefined}
               >
@@ -53,8 +53,10 @@ const Header = ({ config }: HeaderProps) => {
               </Link>
             )}
           </nav>
-          <div className="flex-1 flex justify-center px-2 lg:ml-6 lg:justify-end">
-            <AutocompleteSearch />
+          <div className="flex-1 flex justify-end ml-4 min-w-0">
+            <div className="w-full max-w-xs">
+              <AutocompleteSearch />
+            </div>
           </div>
           <div className="md:hidden">
             {/* Mobile menu button can be added here */}
