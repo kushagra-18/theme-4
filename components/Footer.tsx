@@ -6,7 +6,7 @@ interface FooterProps {
 
 const Footer = ({ config }: FooterProps) => {
   const currentYear = new Date().getFullYear();
-  const { siteConfig, featureFlags } = config;
+  const { siteConfig, featureFlags, footerNavigationLinks } = config;
 
   return (
     <footer className="bg-neutral text-neutral-content">
@@ -16,7 +16,17 @@ const Footer = ({ config }: FooterProps) => {
             <p>&copy; {currentYear} {siteConfig.h1 || "BlazeBlog"}. All rights reserved.</p>
           </div>
           <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-             {/* Social links or other footer content can go here */}
+             {footerNavigationLinks?.map((link, index) => (
+               <a 
+                 key={index}
+                 href={link.url} 
+                 className="hover:text-primary transition-colors"
+                 target={link.url.startsWith('http') ? '_blank' : '_self'}
+                 rel={link.url.startsWith('http') ? 'noopener noreferrer' : undefined}
+               >
+                 {link.label}
+               </a>
+             ))}
              {featureFlags.enableNewsletters && (
                 <a href="#newsletter" className="hover:text-primary">Newsletter</a>
              )}

@@ -8,7 +8,8 @@ interface HeaderProps {
 }
 
 const Header = ({ config }: HeaderProps) => {
-  const { siteConfig, featureFlags } = config;
+  const { siteConfig, featureFlags, headerNavigationLinks } = config;
+
 
   return (
     <header className="bg-neutral text-neutral-content">
@@ -30,6 +31,17 @@ const Header = ({ config }: HeaderProps) => {
             </Link>
           </div>
           <nav className="hidden md:flex md:items-center md:space-x-8">
+            {headerNavigationLinks?.map((link, index) => (
+              <a
+                key={index}
+                href={link.url}
+                className="hover:text-primary transition-colors duration-200"
+                target={link.url.startsWith('http') ? '_blank' : '_self'}
+                rel={link.url.startsWith('http') ? 'noopener noreferrer' : undefined}
+              >
+                {link.label}
+              </a>
+            ))}
             {featureFlags.enableCategoriesPage && (
               <Link href="/categories" className="hover:text-primary transition-colors duration-200">
                 Categories
@@ -40,7 +52,6 @@ const Header = ({ config }: HeaderProps) => {
                 Tags
               </Link>
             )}
-            {/* Add other navigation links here if needed */}
           </nav>
           <div className="flex-1 flex justify-center px-2 lg:ml-6 lg:justify-end">
             <AutocompleteSearch />

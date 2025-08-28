@@ -155,6 +155,11 @@ interface AnalyticsProvider {
   script?: string; // Optional - fallback for custom implementations
 }
 
+interface NavigationLink {
+  label: string;
+  url: string;
+}
+
 export interface SiteConfig {
   featureFlags: {
     enableTagsPage: boolean;
@@ -190,6 +195,8 @@ export interface SiteConfig {
     themeId: number;
     color: string;
   };
+  headerNavigationLinks?: NavigationLink[];
+  footerNavigationLinks?: NavigationLink[];
 }
 
 class BlazeBlogClient {
@@ -223,24 +230,24 @@ class BlazeBlogClient {
     });
 
     if (!response.ok) {
-        let errorData;
-        try {
-            errorData = await response.json();
-        } catch {
-            errorData = await response.text();
-        }
-        
-        const error = new Error();
-        error.name = 'APIError';
-        
-        if (typeof errorData === 'object' && errorData !== null) {
-            Object.assign(error, errorData);
-            error.message = errorData.message || `API Error: ${response.status} - ${response.statusText}`;
-        } else {
-            error.message = `API Error: ${response.status} - ${response.statusText}. Body: ${errorData}`;
-        }
-        
-        throw error;
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch {
+        errorData = await response.text();
+      }
+
+      const error = new Error();
+      error.name = 'APIError';
+
+      if (typeof errorData === 'object' && errorData !== null) {
+        Object.assign(error, errorData);
+        error.message = errorData.message || `API Error: ${response.status} - ${response.statusText}`;
+      } else {
+        error.message = `API Error: ${response.status} - ${response.statusText}. Body: ${errorData}`;
+      }
+
+      throw error;
     }
 
     const data = await response.json();
@@ -320,7 +327,7 @@ class BlazeBlogClient {
       // The transformPost function expects a specific structure, let's adapt
       // or apply it to the nested post data.
       if (response.data) {
-          response.data = this.transformPost(response.data) as Post;
+        response.data = this.transformPost(response.data) as Post;
       }
 
       return response;
@@ -380,8 +387,8 @@ class BlazeBlogClient {
 
       const response = await this.makeRequest<any>(
         `/public/posts/${postResult.data.id}/comments?limit=${limit}&page=${page}`, {
-          cache: 'no-store',
-        }
+        cache: 'no-store',
+      }
       );
 
       return {
@@ -416,16 +423,16 @@ class BlazeBlogClient {
     content: string;
     parentCommentId?: number;
   }): Promise<ApiResponse<Comment>> {
-      const postResult = await this.getPost(commentData.postSlug, false);
-      if (!postResult?.data) {
-          throw new Error('Post not found');
-      }
-      const { postSlug, ...payload } = commentData;
-      const data = await this.makeRequest<ApiResponse<Comment>>(`/public/comments`, {
-          method: 'POST',
-          body: JSON.stringify({ ...payload, postId: postResult.data.id }),
-      });
-      return data;
+    const postResult = await this.getPost(commentData.postSlug, false);
+    if (!postResult?.data) {
+      throw new Error('Post not found');
+    }
+    const { postSlug, ...payload } = commentData;
+    const data = await this.makeRequest<ApiResponse<Comment>>(`/public/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ ...payload, postId: postResult.data.id }),
+    });
+    return data;
   }
 
   async createCommentByPostId(commentData: {
@@ -464,7 +471,7 @@ class BlazeBlogClient {
       cache: 'no-store',
     });
     if (response && response.data) {
-        return response.data;
+      return response.data;
     }
     return response;
   }
