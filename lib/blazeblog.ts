@@ -193,7 +193,7 @@ export interface SiteConfig {
   };
   theme?: {
     themeId: number;
-    color: string;
+    colorPalette: string;
   };
   headerNavigationLinks?: NavigationLink[];
   footerNavigationLinks?: NavigationLink[];

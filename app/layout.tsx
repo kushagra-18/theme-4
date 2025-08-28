@@ -67,7 +67,7 @@ export default async function RootLayout({
     );
   }
 
-  const theme = siteConfig.theme?.color || "retro";
+  const theme = siteConfig.theme?.colorPalette || "retro";
 
   return (
     <html lang="en" data-theme={theme}>
