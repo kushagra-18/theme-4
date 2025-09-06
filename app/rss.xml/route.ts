@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export async function GET() {
     try {
 
-        const url = `https://api.blazeblog.co/public/site/rss`;
+        const url = `https://api.blazeblog.co/api/v1/public/site/rss`;
 
         let domain = typeof window !== 'undefined' ?
             `${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}` :
