@@ -397,6 +397,16 @@ class BlazeBlogClient {
         response.data = this.transformPost(response.data) as Post;
         // Apply image resizing if feature flag is enabled
         response.data = this.applyImageResize(response.data, siteConfig);
+        
+        if (response.data.relatedPosts && response.data.relatedPosts.length > 0) {
+          response.data.relatedPosts = response.data.relatedPosts.map(relatedItem => ({
+            ...relatedItem,
+            relatedPost: this.applyImageResize(
+              this.transformPost(relatedItem.relatedPost), 
+              siteConfig
+            ) as Post
+          }));
+        }
       }
 
       return response;

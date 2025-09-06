@@ -3,17 +3,13 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
     try {
-        const client = await getSSRBlazeBlogClient();
 
-        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api/v1"}/public/site/rss`;
+        const url = `https://api.blazeblog.co/public/site/rss`;
 
         let domain = typeof window !== 'undefined' ?
             `${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}` :
             '';
 
-        if (process.env.NODE_ENV === 'development') {
-            domain = 'localhost:3000';
-        }
 
         const response = await fetch(url, {
             headers: {
