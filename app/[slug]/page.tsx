@@ -13,6 +13,7 @@ import JsonLd from '@/components/JsonLd';
 
 type Props = {
   params: { slug: string };
+  searchParams?: { preview?: string; token?: string };
 };
 
 // Generate metadata for the page using the new SEO object
@@ -46,8 +47,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function PostPage({ params }: Props) {
+export default async function PostPage({ params, searchParams }: Props) {
     const { slug } = params;
+    
+    const staticFileExtensions = ['.ico', '.png', '.jpg', '.jpeg', '.gif', '.svg', '.css', '.js', '.xml', '.txt', '.json'];
+    const systemRoutes = ['favicon.ico', 'robots.txt', 'sitemap.xml', 'rss.xml', 'manifest.json', 'sw.js', '_next'];
+    
+    if (systemRoutes.includes(slug) || staticFileExtensions.some(ext => slug.endsWith(ext))) {
+        notFound();
+    }
+    
     const client = await getSSRBlazeBlogClient();
 
     // Fetch post data and site config in parallel

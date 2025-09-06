@@ -267,6 +267,11 @@ class BlazeBlogClient {
       domain = 'localhost:3000';
     }
 
+    // Debug logging only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('BlazeBlog makeRequest - Domain:', domain, 'Endpoint:', endpoint);
+    }
+
     const headers = {
       'X-domain': domain,
       'Content-Type': 'application/json',
@@ -283,7 +288,13 @@ class BlazeBlogClient {
     if (!response.ok) {
       let errorData;
       try {
-        errorData = await response.json();
+        // Check if the response might be XML/text first
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('xml') || contentType.includes('text')) {
+          errorData = await response.text();
+        } else {
+          errorData = await response.json();
+        }
       } catch {
         errorData = await response.text();
       }
@@ -301,8 +312,32 @@ class BlazeBlogClient {
       throw error;
     }
 
+    // Check if the response is XML/text (for RSS/Sitemap endpoints)
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType.includes('xml') || contentType.includes('text') || endpoint.includes('/rss') || endpoint.includes('/sitemap')) {
+      const textData = await response.text();
+      return textData as T;
+    }
+
     const data = await response.json();
     return data;
+  }
+
+  async getPreviewPost(token: string): Promise<GetPostResult | null> {
+    try {
+      const response = await this.makeRequest<GetPostResult>(`/public/posts/preview?token=${token}`);
+
+      console.log('Preview post response:', response);
+
+      if (response.data) {
+        response.data = this.transformPost(response.data) as Post;
+      }
+
+      return response;
+    } catch (error) {
+      console.error(`Error fetching preview post with token ${token}:`, error);
+      return null;
+    }
   }
 
   async getPosts({
@@ -668,8 +703,17 @@ export async function getSSRBlazeBlogClient() {
     const headersList = headers();
     const host = headersList.get('host');
     const nginxDomain = headersList.get('x-nginx-domain');
+    
+    // Debug logging only in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('getSSRBlazeBlogClient - Host:', host, 'X-Nginx-Domain:', nginxDomain);
+    }
+    
     return new BlazeBlogClient(API_BASE_URL, config.blog.tenantSlug, host || nginxDomain || undefined);
-  } catch {
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('getSSRBlazeBlogClient - Error:', error);
+    }
     return blazeblog;
   }
 }

@@ -1,11 +1,19 @@
 import { getSSRBlazeBlogClient } from '@/lib/blazeblog';
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     // Try to get sitemap from the API first
     try {
       const client = await getSSRBlazeBlogClient();
+      
+      // Debug logging only in development
+      if (process.env.NODE_ENV === 'development') {
+          const host = request.headers.get('host');
+          const nginxDomain = request.headers.get('x-nginx-domain');
+          console.log('Sitemap Route - Host:', host, 'X-Nginx-Domain:', nginxDomain);
+      }
+      
       const response = await client.makeRequest<{ sitemapUrl?: string; sitemap?: string }>('/public/site/sitemap');
 
       let sitemapContent: string;
