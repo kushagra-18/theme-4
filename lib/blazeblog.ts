@@ -2,6 +2,50 @@ import { config } from "@/config";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api/v1";
 
+interface ResizeOptions {
+  width: number;
+  height: number;
+  fit?: 'cover' | 'contain' | 'fill' | 'inside' | 'outside';
+  format?: 'webp' | 'jpeg' | 'png' | 'avif';
+}
+
+export const resizeImageUrl = (url: string, options: ResizeOptions): string => {
+  if (!url) {
+    return "";
+  }
+
+  const params = new URLSearchParams();
+  params.append('width', options.width.toString());
+  params.append('height', options.height.toString());
+  if (options.fit) {
+    params.append('fit', options.fit);
+  }
+  if (options.format) {
+    params.append('format', options.format);
+  }
+
+  // Check if the URL already has query parameters
+  if (url.includes('?')) {
+    return `${url}&${params.toString()}`;
+  } else {
+    return `${url}?${params.toString()}`;
+  }
+}
+
+// Utility function for resizing images with different sizes for different use cases
+export const getResizedImageUrl = (originalUrl: string, context: 'card' | 'hero' | 'thumbnail' | 'full'): string => {
+  if (!originalUrl) return '';
+
+  const resizeConfigs = {
+    card: { width: 400, height: 300, fit: 'cover' as const, format: 'webp' as const },
+    hero: { width: 1200, height: 600, fit: 'cover' as const, format: 'webp' as const },
+    thumbnail: { width: 150, height: 150, fit: 'cover' as const, format: 'webp' as const },
+    full: { width: 800, height: 600, fit: 'cover' as const, format: 'webp' as const }
+  };
+
+  return resizeImageUrl(originalUrl, resizeConfigs[context]);
+};
+
 export interface Post {
   id: number;
   title: string;
@@ -158,10 +202,12 @@ interface AnalyticsProvider {
 interface NavigationLink {
   label: string;
   url: string;
+  children?: NavigationLink[];
 }
 
 export interface SiteConfig {
   featureFlags: {
+    allowImageResize?: boolean;
     enableTagsPage: boolean;
     maintenanceMode: boolean;
     enableAuthorsPage: boolean;
@@ -194,6 +240,7 @@ export interface SiteConfig {
   theme?: {
     themeId: number;
     colorPalette: string;
+    fontFamily?: string;
   };
   headerNavigationLinks?: NavigationLink[];
   footerNavigationLinks?: NavigationLink[];
@@ -216,8 +263,12 @@ class BlazeBlogClient {
       `${window.location.hostname}${window.location.port ? ':' + window.location.port : ''}` :
       '');
 
+    if (process.env.NODE_ENV === 'development') {
+      domain = 'localhost:3000';
+    }
+
     const headers = {
-      'X-domain': "localhost:3000", // Use localhost for local dev to avoid CORS issues
+      'X-domain': domain,
       'Content-Type': 'application/json',
       'X-public-site': 'true',
       ...options?.headers,
@@ -275,12 +326,19 @@ class BlazeBlogClient {
       endpoint = `/public/posts/tag/${tags[0]}?page=${page}&limit=${limit}`;
     }
 
-    const response = await this.makeRequest<any>(endpoint);
+    const [response, siteConfig] = await Promise.all([
+      this.makeRequest<any>(endpoint),
+      this.getSiteConfig()
+    ]);
 
     if (isCategory) {
-      // Handle the new, rich category response
       const categoryData = response.data || {};
-      const posts = (categoryData.posts || []).map((p: any) => this.transformPost(p));
+      let posts = (categoryData.posts || []).map((p: any) => this.transformPost(p));
+      
+      if (siteConfig.featureFlags.allowImageResize) {
+        posts = posts.map((post: Post) => this.applyImageResize(post, siteConfig));
+      }
+      
       const meta = response.meta || { total: posts.length, limit };
       const totalPages = Math.ceil(meta.total / limit);
 
@@ -301,7 +359,13 @@ class BlazeBlogClient {
     }
 
     // Handle home and tag pages (assuming simpler structure)
-    const posts = (response.data?.posts || response.data || []).map((p: any) => this.transformPost(p));
+    let posts = (response.data?.posts || response.data || []).map((p: any) => this.transformPost(p));
+    
+    // Apply image resizing if feature flag is enabled
+    if (siteConfig.featureFlags.allowImageResize) {
+      posts = posts.map((post: Post) => this.applyImageResize(post, siteConfig));
+    }
+    
     const meta = response.meta || { total: posts.length, limit };
     const totalPages = Math.ceil(meta.total / limit);
 
@@ -322,12 +386,17 @@ class BlazeBlogClient {
   async getPost(slug: string, includeRelated = true): Promise<GetPostResult | null> {
     try {
       // The new API response includes everything, so we request the full object
-      const response = await this.makeRequest<GetPostResult>(`/public/posts/${slug}?includeRelated=${includeRelated}`);
+      const [response, siteConfig] = await Promise.all([
+        this.makeRequest<GetPostResult>(`/public/posts/${slug}?includeRelated=${includeRelated}`),
+        this.getSiteConfig()
+      ]);
 
       // The transformPost function expects a specific structure, let's adapt
       // or apply it to the nested post data.
       if (response.data) {
         response.data = this.transformPost(response.data) as Post;
+        // Apply image resizing if feature flag is enabled
+        response.data = this.applyImageResize(response.data, siteConfig);
       }
 
       return response;
@@ -457,13 +526,20 @@ class BlazeBlogClient {
       return { posts: [] };
     }
 
-    const response = await this.makeRequest<any>(`/public/search?q=${encodeURIComponent(query)}`);
+    const [response, siteConfig] = await Promise.all([
+      this.makeRequest<any>(`/public/search?q=${encodeURIComponent(query)}`),
+      this.getSiteConfig()
+    ]);
 
     const postsData = response.data?.posts?.posts || [];
+    let posts = postsData.map((p: any) => this.transformPost(p));
+    
+    // Apply image resizing if feature flag is enabled
+    if (siteConfig.featureFlags.allowImageResize) {
+      posts = posts.map((post: Post) => this.applyImageResize(post, siteConfig));
+    }
 
-    return {
-      posts: postsData.map((p: any) => this.transformPost(p)),
-    };
+    return { posts };
   }
 
   async getSiteConfig(): Promise<SiteConfig> {
@@ -487,7 +563,6 @@ class BlazeBlogClient {
   }
 
   private transformPost(data: any): Post {
-    // The raw post data might be nested or not
     const post = data.data || data;
 
     const slug = post.slug || (post.title ? post.title
@@ -530,6 +605,32 @@ class BlazeBlogClient {
         image: null,
       },
     };
+  }
+
+  private applyImageResize(post: Post, siteConfig?: SiteConfig): Post {
+    if (!siteConfig?.featureFlags.allowImageResize) {
+      return post;
+    }
+
+    if (post.featuredImage) {
+      post.featuredImage = resizeImageUrl(post.featuredImage, {
+        width: 800,
+        height: 600,
+        fit: 'cover',
+        format: 'webp'
+      });
+    }
+
+    if (post.image) {
+      post.image = resizeImageUrl(post.image, {
+        width: 800,
+        height: 600,
+        fit: 'cover',
+        format: 'webp'
+      });
+    }
+
+    return post;
   }
 }
 

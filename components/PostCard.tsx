@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Post } from '@/lib/blazeblog';
+import { Post, getSSRBlazeBlogClient } from '@/lib/blazeblog';
 import { BiTime, BiUser, BiCalendar } from 'react-icons/bi';
 
 interface PostCardProps {
@@ -21,7 +21,8 @@ const PostCard = ({ post }: PostCardProps) => {
             alt={post.title}
             fill
             style={{ objectFit: 'cover' }}
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            sizes="(max-width: 768px) 400px, (max-width: 1200px) 500px, 600px"
+            unoptimized={!!post.featuredImage?.includes('width=')}
           />
         </figure>
       </Link>

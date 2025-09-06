@@ -4,6 +4,7 @@ import PostCard from '@/components/PostCard';
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import Breadcrumbs from '@/components/Breadcrumbs';
+import JsonLd from '@/components/JsonLd';
 
 type Props = {
   params: { slug: string };
@@ -48,11 +49,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
     return (
       <>
         {seo && seo.jsonLd.map((json, index) => (
-            <script
-                key={index}
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
-            />
+            <JsonLd key={index} data={json} />
         ))}
         <div className="bg-base-100">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">

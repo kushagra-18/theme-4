@@ -3,11 +3,13 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import Script from 'next/script';
 import PostCard from '@/components/PostCard';
 import CommentSection from '@/components/CommentSection';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import NewsletterForm from '@/components/NewsletterForm';
 import ShareButtons from '@/components/ShareButtons';
+import JsonLd from '@/components/JsonLd';
 
 type Props = {
   params: { slug: string };
@@ -63,14 +65,17 @@ export default async function PostPage({ params }: Props) {
 
     return (
         <>
-            {/* Render JSON-LD from the API */}
             {seo.jsonLd.map((json, index) => (
-                <script
-                    key={index}
-                    type="application/ld+json"
-                    dangerouslySetInnerHTML={{ __html: JSON.stringify(json) }}
-                />
+                <JsonLd key={index} data={json} />
             ))}
+            
+            {/* BlazeBlog view tracking script */}
+            <Script 
+                id="blazeblog-view-cdn" 
+                src="https://cdn.jsdelivr.net/gh/blazeblog/view-script@main/view.js" 
+                strategy="afterInteractive" 
+            />
+            
             <article className="bg-base-200 py-8">
                 <div className="p-8 bg-base-100/80 backdrop-blur-sm rounded-lg">
                     <div className="max-w-3xl mx-auto">
@@ -99,6 +104,8 @@ export default async function PostPage({ params }: Props) {
                                     fill
                                     style={{ objectFit: 'cover' }}
                                     priority
+                                    sizes="(max-width: 768px) 100vw, 800px"
+                                    unoptimized={post.featuredImage.includes('width=')}
                                 />
                             </figure>
                         )}

@@ -1,16 +1,30 @@
 import type { Metadata } from "next";
-import { Lora } from "next/font/google";
+import { Lora, Inter, Roboto, Poppins, Merriweather, Open_Sans, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 import { getSSRBlazeBlogClient, SiteConfig } from "@/lib/blazeblog";
 
-const lora = Lora({ subsets: ["latin"] });
+const lora = Lora({ subsets: ["latin"], display: "swap" });
+const inter = Inter({ subsets: ["latin"], display: "swap" });
+const roboto = Roboto({ subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
+const poppins = Poppins({ subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
+const merriweather = Merriweather({ subsets: ["latin"], weight: ["400", "700"], style: ["normal", "italic"], display: "swap" });
+const openSans = Open_Sans({ subsets: ["latin"], weight: ["400", "600", "700"], display: "swap" });
+const sourceSans = Source_Sans_3({ subsets: ["latin"], weight: ["400", "600", "700"], display: "swap" });
 
-// Helper function to fetch site config with error handling
+const fontClassMap: Record<string, string> = {
+  lora: lora.className,
+  inter: inter.className,
+  roboto: roboto.className,
+  poppins: poppins.className,
+  merriweather: merriweather.className,
+  "open sans": openSans.className,
+  "source sans 3": sourceSans.className,
+};
+
 async function getSiteConfig(): Promise<SiteConfig | null> {
   try {
     const client = await getSSRBlazeBlogClient();
     const config = await client.getSiteConfig();
-    // The getSiteConfig method in the client now handles unwrapping the data
     return config;
   } catch (error) {
     console.error("Failed to fetch site config:", error);
@@ -34,7 +48,6 @@ export async function generateMetadata(): Promise<Metadata> {
       template: `%s | ${config.siteConfig.seoTitle || "BlazeBlog"}`,
     },
     description: config.siteConfig.homeMetaDescription,
-    // more metadata can be added here
   };
 }
 
@@ -42,7 +55,6 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ThemePreviewBar from "@/components/ThemePreviewBar";
 
-// Placeholder for Maintenance Page
 const MaintenancePage = () => (
   <div className="flex flex-col items-center justify-center min-h-screen text-center">
     <h1 className="text-4xl font-bold">Down for Maintenance</h1>
@@ -68,10 +80,13 @@ export default async function RootLayout({
   }
 
   const theme = siteConfig.theme?.colorPalette || "retro";
+  const configuredFont = siteConfig.theme?.fontFamily || "poppins";
+  const key = configuredFont.toLowerCase().replace(/\s+/g, "_");
+  const fontClass = fontClassMap[key] || lora.className;
 
   return (
     <html lang="en" data-theme={theme}>
-      <body className={lora.className}>
+      <body className={fontClass}>
         <ThemePreviewBar />
         <div className="flex flex-col min-h-screen">
           <Header config={siteConfig} />
