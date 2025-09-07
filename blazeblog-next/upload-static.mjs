@@ -37,9 +37,28 @@ const BUILD_ID_PATH = path.join(NEXT_DIR, 'BUILD_ID');
 const BUCKET = process.env.AWS_S3_BUCKET_NAME;
 const ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
-const ENDPOINT = process.env.AWS_R2_ENDPOINT || process.env.AWS_S3_ENDPOINT || undefined;
+const RAW_ENDPOINT = process.env.AWS_R2_ENDPOINT || process.env.AWS_S3_ENDPOINT || undefined;
+let ENDPOINT = RAW_ENDPOINT ? RAW_ENDPOINT.replace(/\/+$/, '') : undefined;
+if (ENDPOINT && BUCKET && ENDPOINT.endsWith('/' + BUCKET)) {
+  ENDPOINT = ENDPOINT.slice(0, -('/' + BUCKET).length);
+}
 const REGION = process.env.AWS_REGION || 'auto';
-const CDN_PREFIX = (process.env.CDN_PREFIX || '').replace(/^\/+|\/+$/g, '');
+
+// Normalize CDN prefix: path segment only (no scheme/host)
+function normalizePrefix(inp) {
+  let p = (inp || '').trim();
+  if (!p) return '';
+  if (p.startsWith('http://') || p.startsWith('https://')) {
+    try { const u = new URL(p); p = u.pathname; } catch {}
+  }
+  p = p.replace(/^\/+|\/+$/g, '');
+  return p;
+}
+// Default folder prefix to "theme-4" unless explicitly overridden
+const CDN_PREFIX = normalizePrefix(process.env.CDN_PREFIX ?? 'theme-4');
+if ((process.env.CDN_PREFIX || '').startsWith('http')) {
+  console.warn('CDN_PREFIX looks like a URL; using its pathname portion for keys.');
+}
 
 if (!BUCKET || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY) {
   console.error('Missing required env: AWS_S3_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY');
@@ -49,6 +68,12 @@ if (!BUCKET || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY) {
     console.error('dotenv not loaded; ensure env vars are exported or set in blazeblog-next/.env.local');
   }
   process.exit(1);
+}
+
+// Only operate in production unless explicitly forced
+if (process.env.NODE_ENV !== 'production' && process.env.FORCE_UPLOAD !== '1') {
+  console.log('Skipping upload: NODE_ENV is not production. Set FORCE_UPLOAD=1 to override.');
+  process.exit(0);
 }
 
 const client = new S3Client({
@@ -156,8 +181,3 @@ main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-// Only operate in production unless explicitly forced
-if (process.env.NODE_ENV !== 'production' && process.env.FORCE_UPLOAD !== '1') {
-  console.log('Skipping upload: NODE_ENV is not production. Set FORCE_UPLOAD=1 to override.');
-  process.exit(0);
-}
