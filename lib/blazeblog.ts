@@ -267,10 +267,6 @@ class BlazeBlogClient {
       domain = 'localhost:3000';
     }
 
-    // Debug logging only in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('BlazeBlog makeRequest - Domain:', domain, 'Endpoint:', endpoint);
-    }
 
     const headers = {
       'X-domain': domain,
@@ -326,8 +322,6 @@ class BlazeBlogClient {
   async getPreviewPost(token: string): Promise<GetPostResult | null> {
     try {
       const response = await this.makeRequest<GetPostResult>(`/public/posts/preview?token=${token}`);
-
-      console.log('Preview post response:', response);
 
       if (response.data) {
         response.data = this.transformPost(response.data) as Post;
@@ -703,17 +697,9 @@ export async function getSSRBlazeBlogClient() {
     const headersList = headers();
     const host = headersList.get('host');
     const nginxDomain = headersList.get('x-nginx-domain');
-    
-    // Debug logging only in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log('getSSRBlazeBlogClient - Host:', host, 'X-Nginx-Domain:', nginxDomain);
-    }
-    
+
     return new BlazeBlogClient(API_BASE_URL, config.blog.tenantSlug, host || nginxDomain || undefined);
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('getSSRBlazeBlogClient - Error:', error);
-    }
     return blazeblog;
   }
 }

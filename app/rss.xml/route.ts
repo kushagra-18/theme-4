@@ -3,17 +3,8 @@ import { getSSRBlazeBlogClient } from '@/lib/blazeblog';
 
 export async function GET(request: NextRequest) {
     try {
-        // Use the BlazeBlog client which handles domain detection properly
         const client = await getSSRBlazeBlogClient();
         
-        // Debug logging only in development
-        if (process.env.NODE_ENV === 'development') {
-            const host = request.headers.get('host');
-            const nginxDomain = request.headers.get('x-nginx-domain');
-            console.log('RSS Route - Host:', host, 'X-Nginx-Domain:', nginxDomain);
-        }
-        
-        // Try multiple RSS endpoints that might exist
         const rssEndpoints = ['/public/site/rss', '/public/rss', '/public/feed'];
         let rssResponse = null;
         let lastError = null;

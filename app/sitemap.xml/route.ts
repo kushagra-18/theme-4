@@ -3,16 +3,8 @@ import { NextResponse, NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    // Try to get sitemap from the API first
     try {
       const client = await getSSRBlazeBlogClient();
-      
-      // Debug logging only in development
-      if (process.env.NODE_ENV === 'development') {
-          const host = request.headers.get('host');
-          const nginxDomain = request.headers.get('x-nginx-domain');
-          console.log('Sitemap Route - Host:', host, 'X-Nginx-Domain:', nginxDomain);
-      }
       
       const response = await client.makeRequest<{ sitemapUrl?: string; sitemap?: string }>('/public/site/sitemap');
 
@@ -37,7 +29,6 @@ export async function GET(request: NextRequest) {
         },
       });
     } catch (apiError) {
-      // If API fails, try direct fetch for XML content
       console.warn('API sitemap failed, trying direct XML fetch:', apiError);
       
       const url = `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001/api/v1"}/public/site/sitemap`;

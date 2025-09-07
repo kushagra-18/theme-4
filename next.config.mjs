@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    experimental: {
+        // Inlines critical CSS using Critters to reduce render-blocking
+        optimizeCss: true,
+    },
     images: {
+        formats: ['image/avif', 'image/webp'],
         remotePatterns: [
             {
                 protocol: 'https',

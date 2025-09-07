@@ -55,6 +55,9 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ThemePreviewBar from "@/components/ThemePreviewBar";
 
+// Ensure responsive layout and proper initial zoom for performance
+export const viewport = { width: "device-width", initialScale: 1 };
+
 const MaintenancePage = () => (
   <div className="flex flex-col items-center justify-center min-h-screen text-center">
     <h1 className="text-4xl font-bold">Down for Maintenance</h1>
@@ -72,6 +75,14 @@ export default async function RootLayout({
   if (!siteConfig || siteConfig.featureFlags.maintenanceMode) {
     return (
       <html lang="en" data-theme="retro">
+        <head>
+          {/* Viewport */}
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+          <link rel="preconnect" href="https://static.blazeblog.co" crossOrigin="anonymous" />
+          <link rel="dns-prefetch" href="//static.blazeblog.co" />
+
+        </head>
         <body className={lora.className}>
           <MaintenancePage />
         </body>
@@ -86,6 +97,14 @@ export default async function RootLayout({
 
   return (
     <html lang="en" data-theme={theme}>
+      <head>
+        {/* Viewport */}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <link rel="preconnect" href="https://static.blazeblog.co" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="//static.blazeblog.co" />
+
+      </head>
       <body className={fontClass}>
         <ThemePreviewBar />
         <div className="flex flex-col min-h-screen">
