@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import Script from 'next/script';
+import ViewsTracker from '@/components/ViewsTracker';
 import PostCard from '@/components/PostCard';
 import CommentSection from '@/components/CommentSection';
 import Breadcrumbs from '@/components/Breadcrumbs';
@@ -77,13 +77,7 @@ export default async function PostPage({ params, searchParams }: Props) {
             {seo.jsonLd.map((json, index) => (
                 <JsonLd key={index} data={json} />
             ))}
-            
-            {/* BlazeBlog view tracking script */}
-            <Script 
-                id="blazeblog-view-cdn" 
-                src="https://cdn.jsdelivr.net/gh/blazeblog/view-script@main/view.js" 
-                strategy="afterInteractive" 
-            />
+            <ViewsTracker />
             
             <article className="bg-base-200 py-8">
                 <div className="p-8 bg-base-100/80 backdrop-blur-sm rounded-lg">
