@@ -8,9 +8,24 @@ import { Upload } from '@aws-sdk/lib-storage';
 // Load local env if present (dotenv optional)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+let loadedEnvFrom = null;
 try {
   const dotenv = await import('dotenv');
-  dotenv.config({ path: path.join(__dirname, '.env.local') });
+  const tryPaths = [
+    path.join(__dirname, '.env.local'),
+    path.join(__dirname, '.env'),
+    path.join(process.cwd(), '.env.production.local'),
+    path.join(process.cwd(), '.env.production'),
+    path.join(process.cwd(), '.env.local'),
+    path.join(process.cwd(), '.env'),
+  ];
+  for (const p of tryPaths) {
+    if (fs.existsSync(p)) {
+      dotenv.config({ path: p });
+      loadedEnvFrom = p;
+      break;
+    }
+  }
 } catch {}
 
 // Config
@@ -28,6 +43,11 @@ const CDN_PREFIX = (process.env.CDN_PREFIX || '').replace(/^\/+|\/+$/g, '');
 
 if (!BUCKET || !ACCESS_KEY_ID || !SECRET_ACCESS_KEY) {
   console.error('Missing required env: AWS_S3_BUCKET_NAME, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY');
+  if (loadedEnvFrom) {
+    console.error(`dotenv loaded from: ${loadedEnvFrom}`);
+  } else {
+    console.error('dotenv not loaded; ensure env vars are exported or set in blazeblog-next/.env.local');
+  }
   process.exit(1);
 }
 
