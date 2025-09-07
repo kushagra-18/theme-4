@@ -10,6 +10,9 @@ import Breadcrumbs from '@/components/Breadcrumbs';
 import NewsletterForm from '@/components/NewsletterForm';
 import ShareButtons from '@/components/ShareButtons';
 import JsonLd from '@/components/JsonLd';
+import PostImagesGallery from '@/components/PostImagesGallery';
+import PostImageBinder from '@/components/PostImageBinder';
+import HeroImageClickable from '@/components/HeroImageClickable';
 
 type Props = {
   params: { slug: string };
@@ -72,6 +75,20 @@ export default async function PostPage({ params, searchParams }: Props) {
     const { data: post, seo } = result;
     const relatedPosts = post.relatedPosts || [];
 
+    // Extract images from content HTML and include featured image first if present
+    const extractImages = (html?: string) => {
+      if (!html) return [] as string[];
+      const regex = /<img\s+[^>]*src=["']([^"']+)["'][^>]*>/gi;
+      const out: string[] = [];
+      let match;
+      while ((match = regex.exec(html)) !== null) {
+        out.push(match[1]);
+      }
+      return Array.from(new Set(out));
+    };
+    const contentImages = extractImages(post.content);
+    const galleryImages = Array.from(new Set([post.featuredImage, ...contentImages].filter(Boolean))) as string[];
+
     return (
         <>
             {seo.jsonLd.map((json, index) => (
@@ -100,24 +117,29 @@ export default async function PostPage({ params, searchParams }: Props) {
                         </header>
 
                         {post.featuredImage && (
-                            <figure className="relative h-96 rounded-lg overflow-hidden mb-8">
-                                <Image
-                                    src={post.featuredImage}
-                                    alt={post.title}
-                                    fill
-                                    style={{ objectFit: 'cover' }}
-                                    priority
-                                    sizes="(max-width: 768px) 100vw, 800px"
-                                    unoptimized={post.featuredImage.includes('width=')}
-                                />
-                            </figure>
+                          <HeroImageClickable
+                            src={post.featuredImage}
+                            alt={post.title}
+                            priority
+                            sizes="(max-width: 768px) 100vw, 800px"
+                            unoptimized={post.featuredImage.includes('width=')}
+                          />
                         )}
 
+                        {/* Render post content with clickable images (opens gallery) */}
                         {post.content && (
+                          <>
+                            <PostImageBinder containerId="post-content" images={galleryImages} />
                             <div
-                                className="prose lg:prose-xl max-w-none"
-                                dangerouslySetInnerHTML={{ __html: post.content }}
+                              id="post-content"
+                              className="prose lg:prose-xl max-w-none"
+                              dangerouslySetInnerHTML={{ __html: post.content }}
                             />
+                          </>
+                        )}
+                        {/* Hidden gallery component; opens on image click and shows thumbnails inside modal */}
+                        {galleryImages.length > 0 && (
+                          <PostImagesGallery images={galleryImages} />
                         )}
 
                         {post.tags && post.tags.length > 0 && (

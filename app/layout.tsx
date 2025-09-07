@@ -1,24 +1,15 @@
 import type { Metadata } from "next";
-import { Lora, Inter, Roboto, Poppins, Merriweather, Open_Sans, Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 import { getSSRBlazeBlogClient, SiteConfig } from "@/lib/blazeblog";
 
-const lora = Lora({ subsets: ["latin"], display: "swap" });
-const inter = Inter({ subsets: ["latin"], display: "swap" });
-const roboto = Roboto({ subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
-const poppins = Poppins({ subsets: ["latin"], weight: ["400", "500", "700"], display: "swap" });
-const merriweather = Merriweather({ subsets: ["latin"], weight: ["400", "700"], style: ["normal", "italic"], display: "swap" });
-const openSans = Open_Sans({ subsets: ["latin"], weight: ["400", "600", "700"], display: "swap" });
-const sourceSans = Source_Sans_3({ subsets: ["latin"], weight: ["400", "600", "700"], display: "swap" });
-
-const fontClassMap: Record<string, string> = {
-  lora: lora.className,
-  inter: inter.className,
-  roboto: roboto.className,
-  poppins: poppins.className,
-  merriweather: merriweather.className,
-  "open sans": openSans.className,
-  "source sans 3": sourceSans.className,
+const fontCssFamilyMap: Record<string, string> = {
+  lora: "'Lora', serif",
+  inter: "'Inter', sans-serif",
+  roboto: "'Roboto', sans-serif",
+  poppins: "'Poppins', sans-serif",
+  merriweather: "'Merriweather', serif",
+  "open sans": "'Open Sans', sans-serif",
+  "source sans 3": "'Source Sans 3', sans-serif",
 };
 
 async function getSiteConfig(): Promise<SiteConfig | null> {
@@ -81,9 +72,15 @@ export default async function RootLayout({
 
           <link rel="preconnect" href="https://static.blazeblog.co" crossOrigin="anonymous" />
           <link rel="dns-prefetch" href="//static.blazeblog.co" />
+          <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=Lora&family=Inter&family=Roboto:wght@400;500;700&family=Poppins:wght@400;500;700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap"
+            rel="stylesheet"
+          />
 
         </head>
-        <body className={lora.className}>
+        <body className="" style={{ fontFamily: fontCssFamilyMap['lora'] }}>
           <MaintenancePage />
         </body>
       </html>
@@ -93,7 +90,7 @@ export default async function RootLayout({
   const theme = siteConfig.theme?.colorPalette || "retro";
   const configuredFont = siteConfig.theme?.fontFamily || "poppins";
   const key = configuredFont.toLowerCase().replace(/\s+/g, "_");
-  const fontClass = fontClassMap[key] || lora.className;
+  const fontCss = fontCssFamilyMap[key] || fontCssFamilyMap['lora'];
 
   return (
     <html lang="en" data-theme={theme}>
@@ -103,9 +100,15 @@ export default async function RootLayout({
 
         <link rel="preconnect" href="https://static.blazeblog.co" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="//static.blazeblog.co" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Lora&family=Inter&family=Roboto:wght@400;500;700&family=Poppins:wght@400;500;700&family=Merriweather:ital,wght@0,400;0,700;1,400;1,700&family=Open+Sans:wght@400;600;700&family=Source+Sans+3:wght@400;600;700&display=swap"
+          rel="stylesheet"
+        />
 
       </head>
-      <body className={fontClass}>
+      <body className="" style={{ fontFamily: fontCss }}>
         <ThemePreviewBar />
         <div className="flex flex-col min-h-screen">
           <Header config={siteConfig} />

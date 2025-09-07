@@ -17,22 +17,29 @@ Setup
    # For R2 (S3-compatible)
    AWS_R2_ENDPOINT=https://ce2ee8cba2f84034921cd9f646f5e148.r2.cloudflarestorage.com
    AWS_REGION=auto
+   # Required to enable uploads
+   UPLOAD_CHUNKS=true
 
-   # Optional prefix within the bucket (defaults to root)
-   CDN_PREFIX=
+   # Optional prefix within the bucket (defaults to "theme-4")
+   # Set to change where assets land under your bucket
+   # e.g. CDN_PREFIX=theme-4
+   #      results in keys like: theme-4/_next/static/**
+   CDN_PREFIX=theme-4
 
 3) Build Next:
    - npm run build
 
 4) Upload:
+   - Ensure NODE_ENV=production and UPLOAD_CHUNKS=true
    - npm run upload:static
 
 What gets uploaded
 - Local: `.next/static/**`
-- Remote: `${CDN_PREFIX}_next/static/**` (prefix omitted if empty)
+- Remote: `${CDN_PREFIX}/_next/static/**` (defaults to `theme-4/_next/static/**`)
 
 Notes
 - For Cloudflare R2, use `AWS_R2_ENDPOINT` and set `AWS_REGION=auto`.
 - Ensure your CDN or static domain points to this bucket and serves with HTTP/2/3 and Brotli/Gzip.
-- Consider setting `assetPrefix` in `next.config.mjs` to your CDN domain.
-
+- Consider setting `assetPrefix` in `next.config.mjs` to your CDN domain + folder path.
+  - Example: `NEXT_PUBLIC_ASSET_PREFIX=https://static.blazeblog.co/theme-4`
+  - Or configure your CDN/origin to map `/` to the `theme-4/` folder in the bucket.
