@@ -76,6 +76,13 @@ if (process.env.NODE_ENV !== 'production' && process.env.FORCE_UPLOAD !== '1') {
   process.exit(0);
 }
 
+// Explicit feature flag to control uploading chunks to S3/R2
+const SHOULD_UPLOAD = String(process.env.UPLOAD_CHUNKS || '').toLowerCase() === 'true';
+if (!SHOULD_UPLOAD) {
+  console.log('Skipping upload: UPLOAD_CHUNKS is not true. Set UPLOAD_CHUNKS=true to enable.');
+  process.exit(0);
+}
+
 const client = new S3Client({
   region: REGION,
   credentials: { accessKeyId: ACCESS_KEY_ID, secretAccessKey: SECRET_ACCESS_KEY },

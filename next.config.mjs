@@ -4,10 +4,13 @@ const nextConfig = {
         // Inlines critical CSS using Critters to reduce render-blocking
         optimizeCss: true,
     },
-    // Load JS/CSS chunks from CDN only in production
-    assetPrefix: process.env.NODE_ENV === 'production' && process.env.NEXT_PUBLIC_ASSET_PREFIX
-      ? process.env.NEXT_PUBLIC_ASSET_PREFIX
-      : undefined,
+    // Load JS/CSS chunks from CDN only when explicitly enabled in production
+    assetPrefix:
+      process.env.NODE_ENV === 'production' &&
+      String(process.env.UPLOAD_CHUNKS || '').toLowerCase() === 'true' &&
+      process.env.NEXT_PUBLIC_ASSET_PREFIX
+        ? process.env.NEXT_PUBLIC_ASSET_PREFIX
+        : undefined,
     images: {
         formats: ['image/avif', 'image/webp'],
         remotePatterns: [
