@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { SiteConfig } from '@/lib/blazeblog';
-import Image from 'next/image';
+import SafeImage from '@/components/SafeImage';
 import AutocompleteSearch from './AutocompleteSearch';
 import { useState } from 'react';
 
@@ -26,7 +26,7 @@ const Header = ({ config }: HeaderProps) => {
           <div className="flex-shrink-0 min-w-0">
             <Link href="/" className="flex items-center space-x-3">
               {siteConfig.logoPath ? (
-                <Image
+                <SafeImage
                   src={siteConfig.logoPath}
                   alt={`${siteConfig.h1 || 'Logo'}`}
                   width={32}

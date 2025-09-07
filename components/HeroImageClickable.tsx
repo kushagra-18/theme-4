@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import SafeImage from "./SafeImage";
 
 type Props = {
   src: string;
@@ -23,7 +23,7 @@ export default function HeroImageClickable({ src, alt, priority, sizes, unoptimi
       role="button"
       aria-label="Open image gallery"
     >
-      <Image
+      <SafeImage
         src={src}
         alt={alt}
         fill
@@ -35,4 +35,3 @@ export default function HeroImageClickable({ src, alt, priority, sizes, unoptimi
     </figure>
   );
 }
-

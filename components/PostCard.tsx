@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import SafeImage from './SafeImage';
 import { Post, getSSRBlazeBlogClient } from '@/lib/blazeblog';
 import { BiTime, BiUser, BiCalendar } from 'react-icons/bi';
 
@@ -16,8 +16,8 @@ const PostCard = ({ post }: PostCardProps) => {
     <article className="card bg-base-100 shadow-lg hover:shadow-2xl transition-shadow border-2 border-base-300">
       <Link href={postUrl}>
         <figure className="relative h-48 md:h-64">
-          <Image
-            src={post.featuredImage || 'https://placehold.co/1200x600'}
+          <SafeImage
+            src={post.featuredImage || undefined}
             alt={post.title}
             fill
             style={{ objectFit: 'cover' }}

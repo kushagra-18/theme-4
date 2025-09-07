@@ -12,6 +12,13 @@ export default function PostImagesGallery({ images }: Props) {
   const [open, setOpen] = useState(false);
   const [index, setIndex] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  const FALLBACK_DATA_URI =
+    "data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8' width='8' height='8'>\
+  <rect width='8' height='8' fill='%23d1d5db'/>\
+</svg>";
 
   const openAt = useCallback((i: number) => {
     if (cleanImages.length === 0) return;
@@ -51,6 +58,11 @@ export default function PostImagesGallery({ images }: Props) {
     };
   }, [open, cleanImages.length]);
 
+  useEffect(() => {
+    // reset skeleton when image index changes or modal opens
+    if (open) setImgLoaded(false);
+  }, [index, open]);
+
   if (cleanImages.length === 0) return null;
 
   if (!mounted) return null;
@@ -62,11 +74,19 @@ export default function PostImagesGallery({ images }: Props) {
           onClick={() => setOpen(false)}
         >
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <div className="flex-1 flex items-center justify-center">
+            <div className="flex-1 flex items-center justify-center relative w-full">
+              {!imgLoaded && (
+                <div className="absolute inset-0 rounded-lg bg-base-300 animate-pulse" aria-hidden />
+              )}
               <img
                 src={cleanImages[index]}
                 alt={`Image ${index + 1}`}
-                className="max-h-[70vh] w-full object-contain rounded-lg bg-base-100"
+                className="max-h-[70vh] w-full object-contain rounded-lg bg-base-100 relative"
+                onLoad={() => setImgLoaded(true)}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = FALLBACK_DATA_URI;
+                  setImgLoaded(true);
+                }}
               />
             </div>
 
@@ -107,7 +127,14 @@ export default function PostImagesGallery({ images }: Props) {
                   onClick={() => setIndex(i)}
                   aria-label={`Go to image ${i + 1}`}
                 >
-                  <img src={src} alt="thumb" className="h-16 w-24 object-cover" />
+                  <img
+                    src={src}
+                    alt="thumb"
+                    className="h-16 w-24 object-cover bg-base-300"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = FALLBACK_DATA_URI;
+                    }}
+                  />
                 </button>
               ))}
             </div>
