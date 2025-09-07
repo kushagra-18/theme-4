@@ -2,14 +2,16 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
 import { S3Client, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 
-// Load local env if present
+// Load local env if present (dotenv optional)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.join(__dirname, '.env.local') });
+try {
+  const dotenv = await import('dotenv');
+  dotenv.config({ path: path.join(__dirname, '.env.local') });
+} catch {}
 
 // Config
 const ROOT = path.resolve(__dirname, '..');
@@ -38,6 +40,8 @@ const client = new S3Client({
 const mime = (file) => {
   const ext = path.extname(file).toLowerCase();
   switch (ext) {
+    case '.woff': return 'font/woff';
+    case '.woff2': return 'font/woff2';
     case '.js': return 'application/javascript';
     case '.mjs': return 'application/javascript';
     case '.css': return 'text/css';
@@ -137,4 +141,3 @@ if (process.env.NODE_ENV !== 'production' && process.env.FORCE_UPLOAD !== '1') {
   console.log('Skipping upload: NODE_ENV is not production. Set FORCE_UPLOAD=1 to override.');
   process.exit(0);
 }
-
