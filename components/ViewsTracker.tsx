@@ -12,35 +12,27 @@ export default function ViewsTracker() {
 
     const send = () => {
       try {
-        // Extract first path segment as slug
         const raw = (window.location.pathname || "/").replace(/^\/+/, "").replace(/\/+$/, "");
         const slug = (raw.split("/")[0] || "").trim();
         if (!slug) return;
 
-        // Bot/automation filters
         const ua = (navigator.userAgent || "").toLowerCase();
         const deny = ["bot", "spider", "crawl", "headlesschrome", "phantomjs", "puppeteer", "pingdom"];
         for (let i = 0; i < deny.length; i++) {
           if (ua.indexOf(deny[i]) !== -1) return;
         }
 
-        const data = JSON.stringify({ slug });
+        const domain = window.location.hostname;
 
+        const payload = JSON.stringify({ slug, domain });
+       
         const url = "/api/views/collect";
-
-        if (typeof navigator.sendBeacon === "function") {
-          const blob = new Blob([data], { type: "application/json" });
-          const ok = navigator.sendBeacon(url, blob);
-          if (ok) return;
-        }
-
-        // Fallback to keepalive POST
         fetch(url, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           keepalive: true,
           credentials: "omit",
-          body: data,
+          body: payload,
           cache: "no-store",
         }).catch(() => {});
       } catch {}
