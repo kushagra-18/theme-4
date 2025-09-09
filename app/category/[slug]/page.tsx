@@ -38,7 +38,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   const client = await getSSRBlazeBlogClient();
 
   try {
-    const { posts, pagination, seo, category } = await client.getPosts({ category: slug, page: currentPage, limit: 9 });
+    const [result, siteConfig] = await Promise.all([
+      client.getPosts({ category: slug, page: currentPage, limit: 9 }),
+      client.getSiteConfig(),
+    ]);
+    const { posts, pagination, seo, category } = result;
 
     if (!posts) {
       notFound();
@@ -62,7 +66,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
               <>
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                   {posts.map((post) => (
-                    <PostCard key={post.id} post={post} />
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      authorLinkEnabled={siteConfig.featureFlags.enableAuthorsPage}
+                    />
                   ))}
                 </div>
 

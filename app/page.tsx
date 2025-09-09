@@ -52,7 +52,11 @@ export default async function HomePage({ searchParams }: { searchParams?: { page
 
             <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
               {posts.map((post) => (
-                <PostCard key={post.id} post={post} />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  authorLinkEnabled={siteConfig.featureFlags.enableAuthorsPage}
+                />
               ))}
             </div>
 

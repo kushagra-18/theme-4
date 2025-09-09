@@ -45,6 +45,7 @@ export async function generateMetadata(): Promise<Metadata> {
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ThemePreviewBar from "@/components/ThemePreviewBar";
+import NextTopLoader from "nextjs-toploader";
 
 // Ensure responsive layout and proper initial zoom for performance
 export const viewport = { width: "device-width", initialScale: 1 };
@@ -81,6 +82,7 @@ export default async function RootLayout({
 
         </head>
         <body className="" style={{ fontFamily: fontCssFamilyMap['lora'] }}>
+          <NextTopLoader color="#29d" showSpinner={false} height={3} crawl={true} />
           <MaintenancePage />
         </body>
       </html>
@@ -109,6 +111,7 @@ export default async function RootLayout({
 
       </head>
       <body className="" style={{ fontFamily: fontCss }}>
+        <NextTopLoader color="#29d" showSpinner={false} height={3} crawl={true} />
         <ThemePreviewBar />
         <div className="flex flex-col min-h-screen">
           <Header config={siteConfig} />

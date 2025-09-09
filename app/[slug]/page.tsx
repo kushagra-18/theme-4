@@ -13,6 +13,7 @@ import JsonLd from '@/components/JsonLd';
 import PostImagesGallery from '@/components/PostImagesGallery';
 import PostImageBinder from '@/components/PostImageBinder';
 import HeroImageClickable from '@/components/HeroImageClickable';
+import LeadFormModal from '@/components/LeadFormModal';
 
 type Props = {
   params: { slug: string };
@@ -103,7 +104,13 @@ export default async function PostPage({ params, searchParams }: Props) {
                         <header className="mt-4 mb-8 text-center border-b-2 border-base-300 pb-8">
                             <h1 className="text-5xl font-serif font-bold tracking-tight my-4">{post.title}</h1>
                             <div className="flex items-center justify-center space-x-2 text-base-content/70">
-                                <span>By {post.user.username}</span>
+                                {siteConfig?.featureFlags.enableAuthorsPage ? (
+                                  <Link href={`/author/${post.user.username}`} className="hover:underline">
+                                    By {post.user.username}
+                                  </Link>
+                                ) : (
+                                  <span>By {post.user.username}</span>
+                                )}
                                 <span>&middot;</span>
                                 <time dateTime={post.publishedAt || post.createdAt}>
                                     {new Date(post.publishedAt || post.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
@@ -165,7 +172,11 @@ export default async function PostPage({ params, searchParams }: Props) {
                             <h2 className="text-3xl font-bold text-center mb-8">Related Posts</h2>
                             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
                                 {relatedPosts.map(relatedPostItem => (
-                                    <PostCard key={relatedPostItem.id} post={relatedPostItem.relatedPost} />
+                                    <PostCard
+                                      key={relatedPostItem.id}
+                                      post={relatedPostItem.relatedPost}
+                                      authorLinkEnabled={siteConfig?.featureFlags.enableAuthorsPage}
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -184,6 +195,7 @@ export default async function PostPage({ params, searchParams }: Props) {
                     </div>
                 )}
             </article>
+            <LeadFormModal />
         </>
     );
 }

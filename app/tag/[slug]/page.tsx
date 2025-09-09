@@ -39,7 +39,11 @@ export default async function TagPage({ params, searchParams }: Props) {
   const client = await getSSRBlazeBlogClient();
 
   try {
-    const { posts, pagination, seo } = await client.getPosts({ tags: [slug], page: currentPage, limit: 9 });
+    const [result, siteConfig] = await Promise.all([
+      client.getPosts({ tags: [slug], page: currentPage, limit: 9 }),
+      client.getSiteConfig(),
+    ]);
+    const { posts, pagination, seo } = result;
 
     // We don't get the tag name back from this endpoint, so we format the slug
     const tagName = slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
@@ -62,7 +66,11 @@ export default async function TagPage({ params, searchParams }: Props) {
               <>
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                   {posts.map((post) => (
-                    <PostCard key={post.id} post={post} />
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      authorLinkEnabled={siteConfig.featureFlags.enableAuthorsPage}
+                    />
                   ))}
                 </div>
 

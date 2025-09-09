@@ -5,9 +5,10 @@ import { BiTime, BiUser, BiCalendar } from 'react-icons/bi';
 
 interface PostCardProps {
   post: Post;
+  authorLinkEnabled?: boolean;
 }
 
-const PostCard = ({ post }: PostCardProps) => {
+const PostCard = ({ post, authorLinkEnabled = false }: PostCardProps) => {
   const postUrl = `/${post.slug}`;
   const categoryUrl = `/category/${post.category?.slug}`;
 
@@ -44,7 +45,13 @@ const PostCard = ({ post }: PostCardProps) => {
           <div className="flex items-center gap-4 text-sm text-base-content/70">
             <div className="flex items-center gap-1">
               <BiUser className="w-4 h-4" />
-              <span className="font-medium">{post.user.username}</span>
+              {authorLinkEnabled ? (
+                <Link href={`/author/${post.user.username}`} className="font-medium hover:underline">
+                  {post.user.username}
+                </Link>
+              ) : (
+                <span className="font-medium">{post.user.username}</span>
+              )}
             </div>
             <div className="flex items-center gap-1">
               <BiCalendar className="w-4 h-4" />

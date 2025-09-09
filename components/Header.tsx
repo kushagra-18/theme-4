@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { SiteConfig } from '@/lib/blazeblog';
 import SafeImage from '@/components/SafeImage';
 import AutocompleteSearch from './AutocompleteSearch';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface HeaderProps {
   config: SiteConfig;
@@ -13,14 +13,55 @@ interface HeaderProps {
 const Header = ({ config }: HeaderProps) => {
   const { siteConfig, featureFlags, headerNavigationLinks } = config;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const headerRef = useRef<HTMLElement | null>(null);
+  const mobileMenuRef = useRef<HTMLDivElement | null>(null);
+  const menuButtonRef = useRef<HTMLButtonElement | null>(null);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+
+      // Close mobile menu if click is outside menu and toggle button
+      if (isMobileMenuOpen) {
+        const clickedOutsideMobileMenu =
+          mobileMenuRef.current && !mobileMenuRef.current.contains(target);
+        const clickedOutsideMenuButton =
+          menuButtonRef.current && !menuButtonRef.current.contains(target);
+        if (clickedOutsideMobileMenu && clickedOutsideMenuButton) {
+          setIsMobileMenuOpen(false);
+        }
+      }
+
+      // Close any open desktop dropdowns if clicking outside them
+      const headerEl = headerRef.current;
+      if (!headerEl) return;
+      const openDropdowns = Array.from(
+        headerEl.querySelectorAll('details.dropdown[open]')
+      ) as HTMLDetailsElement[];
+
+      openDropdowns.forEach((detailsEl) => {
+        if (!detailsEl.contains(target)) {
+          detailsEl.open = false;
+        }
+      });
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [isMobileMenuOpen]);
+
   return (
-    <header className="bg-neutral text-neutral-content">
+    <header ref={headerRef} className="bg-neutral text-neutral-content">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           <div className="flex-shrink-0 min-w-0">
@@ -101,6 +142,7 @@ const Header = ({ config }: HeaderProps) => {
             
             <div className="md:hidden">
               <button
+                ref={menuButtonRef}
                 onClick={toggleMobileMenu}
                 className="inline-flex items-center justify-center p-2 rounded-md hover:text-primary hover:bg-neutral-focus focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary transition-colors"
                 aria-expanded="false"
@@ -123,7 +165,7 @@ const Header = ({ config }: HeaderProps) => {
         {/* Mobile menu */}
         {isMobileMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 bg-neutral-focus">
+            <div ref={mobileMenuRef} className="px-2 pt-2 pb-3 space-y-1 bg-neutral-focus">
               {headerNavigationLinks?.map((link, index) => (
                 link.children && link.children.length > 0 ? (
                   <div key={index}>

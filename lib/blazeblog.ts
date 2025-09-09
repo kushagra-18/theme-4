@@ -297,6 +297,8 @@ class BlazeBlogClient {
 
       const error = new Error();
       error.name = 'APIError';
+      // Attach status for consumers to branch on (e.g., 404 handling)
+      (error as any).status = response.status;
 
       if (typeof errorData === 'object' && errorData !== null) {
         Object.assign(error, errorData);
@@ -319,6 +321,31 @@ class BlazeBlogClient {
     return data;
   }
 
+  // Lead Forms: Get active public form if any; returns null on 404
+  async getActivePublicLeadForm(): Promise<any | null> {
+    try {
+      const response = await this.makeRequest<ApiResponse<any>>(`/public/forms`);
+      return response?.data ?? null;
+    } catch (err: any) {
+      if (err && (err.status === 404 || /\b404\b/.test(String(err.message || '')))) {
+        return null;
+      }
+      console.error('Error fetching public lead form:', err);
+      return null;
+    }
+  }
+
+  async submitPublicLeadForm(
+    formId: string,
+    values: Record<string, any>,
+    meta?: { timeTaken?: number; userAgent?: string }
+  ): Promise<ApiResponse<any>> {
+    return this.makeRequest<ApiResponse<any>>(`/public/forms/${formId}`, {
+      method: 'POST',
+      body: JSON.stringify({ id: formId, data: values, timeTaken: meta?.timeTaken, userAgent: meta?.userAgent }),
+    });
+  }
+
   async getPreviewPost(token: string): Promise<GetPostResult | null> {
     try {
       const response = await this.makeRequest<GetPostResult>(`/public/posts/preview?token=${token}`);
@@ -332,6 +359,47 @@ class BlazeBlogClient {
       console.error(`Error fetching preview post with token ${token}:`, error);
       return null;
     }
+  }
+
+  // Fetch posts by author with proper transformation and pagination
+  async getPostsByAuthor(
+    username: string,
+    { page = 1, limit = 9 }: { page?: number; limit?: number } = {}
+  ): Promise<{ posts: Post[]; pagination: PaginationMeta; seo?: SeoData; author?: any }> {
+    const [response, siteConfig] = await Promise.all([
+      this.makeRequest<any>(`/public/posts/author/${username}?page=${page}&limit=${limit}`),
+      this.getSiteConfig(),
+    ]);
+
+    const rawPosts = (response?.data?.posts ?? response?.posts ?? response?.data ?? []) as any[];
+    let posts = rawPosts.map((p: any) => this.transformPost(p));
+
+    if (siteConfig?.featureFlags.allowImageResize) {
+      posts = posts.map((post: Post) => this.applyImageResize(post, siteConfig));
+    }
+
+    const meta = response?.meta || {
+      total: posts.length,
+      limit,
+      page,
+      totalPages: Math.max(1, Math.ceil(posts.length / limit)),
+    };
+
+    const pagination: PaginationMeta = {
+      total: meta.total,
+      limit: meta.limit,
+      page: meta.page,
+      totalPages: meta.totalPages,
+      nextPage: meta.page < meta.totalPages ? meta.page + 1 : null,
+      prevPage: meta.page > 1 ? meta.page - 1 : null,
+    };
+
+    return {
+      posts,
+      pagination,
+      seo: response?.seo,
+      author: response?.data?.author,
+    };
   }
 
   async getPosts({

@@ -11,13 +11,12 @@ type Props = {
   searchParams?: { page?: string };
 };
 
-// Generate metadata for the author page
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const currentPage = Number(searchParams?.page) || 1;
   const client = await getSSRBlazeBlogClient();
   
   try {
-    const response = await client.makeRequest<any>(`/public/posts/author/${params.slug}?page=${currentPage}&limit=9`);
+    const response = await client.makeRequest<any>(`/public/posts/author/${params.slug}?page=${currentPage}&limit=10`);
 
     if (!response.seo) {
       const authorName = params.slug.charAt(0).toUpperCase() + params.slug.slice(1).replace(/-/g, ' ');
@@ -53,18 +52,7 @@ export default async function AuthorPage({ params, searchParams }: Props) {
   }
 
   try {
-    const response = await client.makeRequest<any>(`/public/posts/author/${slug}?page=${currentPage}&limit=9`);
-    const posts = response.data || [];
-    const seo = response.seo;
-    const meta = response.meta || { total: posts.length, limit: 9 };
-    const totalPages = Math.ceil(meta.total / 9);
-    
-    const pagination = {
-      page: currentPage,
-      totalPages,
-      nextPage: currentPage < totalPages ? currentPage + 1 : null,
-      prevPage: currentPage > 1 ? currentPage - 1 : null,
-    };
+    const { posts, pagination, seo } = await client.getPostsByAuthor(slug, { page: currentPage, limit: 9 });
 
     // Format the author name from slug
     const authorName = slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, ' ');
@@ -88,7 +76,11 @@ export default async function AuthorPage({ params, searchParams }: Props) {
               <>
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                   {posts.map((post: any) => (
-                    <PostCard key={post.id} post={post} />
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      authorLinkEnabled={siteConfig.featureFlags.enableAuthorsPage}
+                    />
                   ))}
                 </div>
 

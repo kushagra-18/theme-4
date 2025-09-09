@@ -10,24 +10,26 @@ const Breadcrumbs = ({ items }: BreadcrumbsProps) => {
     return null;
   }
 
-  return (
-    <div className="text-sm breadcrumbs">
-      <ul>
-        {items.map((item, index) => (
-          <li key={index}>
-            {index < items.length - 1 ? (
-              <Link href={item.url} className="hover:underline">
-                {item.name}
-              </Link>
-            ) : (
-              // Last item is the current page, not a link
-              <span>{item.name}</span>
-            )}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
+  return null;
+
+  // return (
+  //   <div className="text-sm breadcrumbs">
+  //     <ul>
+  //       {items.map((item, index) => (
+  //         <li key={index}>
+  //           {index < items.length - 1 ? (
+  //             <Link href={item.url} className="hover:underline">
+  //               {item.name}
+  //             </Link>
+  //           ) : (
+  //             // Last item is the current page, not a link
+  //             <span>{item.name}</span>
+  //           )}
+  //         </li>
+  //       ))}
+  //     </ul>
+  //   </div>
+  // );
 };
 
 export default Breadcrumbs;
