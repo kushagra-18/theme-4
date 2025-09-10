@@ -46,6 +46,15 @@ export const getResizedImageUrl = (originalUrl: string, context: 'card' | 'hero'
   return resizeImageUrl(originalUrl, resizeConfigs[context]);
 };
 
+interface HeroSettings {
+  enabled?: boolean;
+  contentMd?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+  align?: 'left' | 'center' | 'right';
+}
+
+
 export interface Post {
   id: number;
   title: string;
@@ -223,6 +232,7 @@ export interface SiteConfig {
     seoTitle: string;
     aboutUsContent: string;
     homeMetaDescription: string;
+    heroSettings?: HeroSettings;
   };
   analytics: {
     googleAnalytics: AnalyticsProvider;
@@ -321,7 +331,6 @@ class BlazeBlogClient {
     return data;
   }
 
-  // Lead Forms: Get active public form if any; returns null on 404
   async getActivePublicLeadForm(): Promise<any | null> {
     try {
       const response = await this.makeRequest<ApiResponse<any>>(`/public/forms`);

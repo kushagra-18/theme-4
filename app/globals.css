@@ -1,3 +1,22 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer components {
+  /* Strong, large hero typography without relying on typography plugin */
+  .hero-prose h1 {
+    @apply text-4xl md:text-5xl font-extrabold tracking-tight;
+  }
+  .hero-prose h2 {
+    @apply text-2xl md:text-2xl font-bold tracking-tight;
+  }
+  .hero-prose h3 {
+    @apply text-xl md:text-xl font-semibold;
+  }
+  .hero-prose p {
+    @apply text-lg md:text-2xl text-base-content/80 leading-relaxed;
+  }
+  .hero-prose a {
+    @apply link link-primary;
+  }
+}

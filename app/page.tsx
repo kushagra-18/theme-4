@@ -3,10 +3,10 @@ import Link from "next/link";
 import PostCard from "@/components/PostCard";
 import NewsletterForm from "@/components/NewsletterForm";
 import JsonLd from "@/components/JsonLd";
+import HeroSegment from "@/components/HeroSegment";
 
 async function getPageData(currentPage: number) {
     const client = await getSSRBlazeBlogClient();
-    // Fetch posts and config in parallel for efficiency
     const [postsResult, siteConfig] = await Promise.all([
         client.getPosts({ limit: 9, page: currentPage }),
         client.getSiteConfig()
@@ -33,7 +33,6 @@ export default async function HomePage({ searchParams }: { searchParams?: { page
         </div>
       );
     }
-
     return (
       <>
         {/* JSON-LD structured data from API */}
@@ -43,6 +42,7 @@ export default async function HomePage({ searchParams }: { searchParams?: { page
         
         <div className="bg-base-200">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <HeroSegment config={siteConfig} />
             {/* <div className="text-center mb-16 bg-base-100/50 backdrop-blur-sm p-8 rounded-lg">
               <h1 className="text-5xl md:text-6xl font-serif font-bold tracking-tight">{siteConfig.siteConfig.h1}</h1>
               <p className="mt-4 max-w-2xl mx-auto text-xl">
