@@ -489,6 +489,48 @@ class BlazeBlogClient {
     };
   }
 
+  /**
+   * Fetch homepage data grouped by tags along with latest posts.
+   * This uses the new `/public/posts/home-with-tags` endpoint and is intended
+   * only for the homepage view.
+   */
+  async getHomeWithTags(): Promise<{
+    latest: Post[];
+    tags: Array<{ id: number; name: string; slug: string; posts: Post[] }>;
+    seo?: SeoData;
+  }> {
+    const [response, siteConfig] = await Promise.all([
+      this.makeRequest<any>(`/public/posts/home-with-tags`),
+      this.getSiteConfig(),
+    ]);
+
+    const rawLatest: any[] = response?.latest || [];
+    const rawTagsObj: Record<string, any> = response?.tags || {};
+
+    let latest = rawLatest.map((p: any) => this.transformPost(p));
+
+    let tags = Object.values(rawTagsObj).map((t: any) => ({
+      id: t.id,
+      name: t.name,
+      slug: t.slug,
+      posts: (t.posts || []).map((p: any) => this.transformPost(p)),
+    }));
+
+    if (siteConfig.featureFlags.allowImageResize) {
+      latest = latest.map((p) => this.applyImageResize(p, siteConfig));
+      tags = tags.map((g) => ({
+        ...g,
+        posts: g.posts.map((p) => this.applyImageResize(p, siteConfig)),
+      }));
+    }
+
+    return {
+      latest,
+      tags,
+      seo: response?.seo,
+    };
+  }
+
   async getPost(slug: string, includeRelated = true): Promise<GetPostResult | null> {
     try {
       // The new API response includes everything, so we request the full object

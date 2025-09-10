@@ -1,31 +1,29 @@
-import { getSSRBlazeBlogClient, SiteConfig } from "@/lib/blazeblog";
-import Link from "next/link";
-import PostCard from "@/components/PostCard";
+import { getSSRBlazeBlogClient } from "@/lib/blazeblog";
 import NewsletterForm from "@/components/NewsletterForm";
 import JsonLd from "@/components/JsonLd";
 import HeroSegment from "@/components/HeroSegment";
+import HomeTagsBrowser from "@/components/HomeTagsBrowser";
 
-async function getPageData(currentPage: number) {
-    const client = await getSSRBlazeBlogClient();
-    const [postsResult, siteConfig] = await Promise.all([
-        client.getPosts({ limit: 9, page: currentPage }),
-        client.getSiteConfig()
-    ]);
-    return {
-        posts: postsResult.posts,
-        pagination: postsResult.pagination,
-        siteConfig: siteConfig,
-        seo: postsResult.seo // Include SEO data from API
-    };
+async function getPageData() {
+  const client = await getSSRBlazeBlogClient();
+  const [home, siteConfig] = await Promise.all([
+    client.getHomeWithTags(),
+    client.getSiteConfig(),
+  ]);
+  return {
+    latest: home.latest,
+    tagGroups: home.tags,
+    siteConfig,
+    seo: home.seo,
+  };
 }
 
-export default async function HomePage({ searchParams }: { searchParams?: { page?: string } }) {
-  const currentPage = Number(searchParams?.page) || 1;
+export default async function HomePage() {
 
   try {
-    const { posts, pagination, siteConfig, seo } = await getPageData(currentPage);
+    const { latest, tagGroups, siteConfig, seo } = await getPageData();
 
-    if (!posts || posts.length === 0) {
+    if ((!latest || latest.length === 0) && (!tagGroups || tagGroups.length === 0)) {
       return (
         <div className="container mx-auto px-4 py-8 text-center">
           <h2 className="text-2xl font-semibold">No posts found.</h2>
@@ -43,41 +41,7 @@ export default async function HomePage({ searchParams }: { searchParams?: { page
         <div className="bg-base-200">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
             <HeroSegment config={siteConfig} />
-            {/* <div className="text-center mb-16 bg-base-100/50 backdrop-blur-sm p-8 rounded-lg">
-              <h1 className="text-5xl md:text-6xl font-serif font-bold tracking-tight">{siteConfig.siteConfig.h1}</h1>
-              <p className="mt-4 max-w-2xl mx-auto text-xl">
-                {siteConfig.siteConfig.homeMetaDescription}
-              </p>
-            </div> */}
-
-            <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
-              {posts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  authorLinkEnabled={siteConfig.featureFlags.enableAuthorsPage}
-                />
-              ))}
-            </div>
-
-            {/* Pagination */}
-            <div className="flex justify-center items-center mt-12">
-              <div className="join">
-                {pagination.prevPage && (
-                  <Link href={`/?page=${pagination.prevPage}`} className="join-item btn">
-                    «
-                  </Link>
-                )}
-                <button className="join-item btn" disabled>
-                  Page {pagination.page} of {pagination.totalPages}
-                </button>
-                {pagination.nextPage && (
-                  <Link href={`/?page=${pagination.nextPage}`} className="join-item btn">
-                    »
-                  </Link>
-                )}
-              </div>
-            </div>
+            <HomeTagsBrowser latest={latest} tags={tagGroups} siteConfig={siteConfig} />
           </div>
 
           {siteConfig.featureFlags.enableNewsletters && (
