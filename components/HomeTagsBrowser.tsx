@@ -40,7 +40,7 @@ export default function HomeTagsBrowser({
   return (
     <div className="flex flex-col gap-8">
       <div className="no-scrollbar -mx-2 overflow-x-auto">
-        <div className="flex gap-2 px-2">
+        <div className="flex gap-2 px-2 justify-center">
           {pills.map((p) => (
             <button
               key={p.key}
@@ -53,7 +53,7 @@ export default function HomeTagsBrowser({
         </div>
       </div>
 
-      <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-3 justify-items-center">
         {activeGroup.posts.map((post) => (
           <PostCard key={post.id} post={post} authorLinkEnabled={siteConfig.featureFlags.enableAuthorsPage} />
         ))}
